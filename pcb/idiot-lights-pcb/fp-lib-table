@@ -1,0 +1,7 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "cygni")(type "KiCad")(uri "/home/kjelle/Documents/cygni/cts-idiot-lights/pcb/libs/Cygni_logo/cygni.pretty")(options "")(descr ""))
+  (lib (name "Raspberry_Pi_Pico_Kicad_Files")(type "KiCad")(uri "/home/kjelle/Documents/cygni/cts-idiot-lights/pcb/libs/Raspberry_Pi_Pico_Kicad_Files")(options "")(descr ""))
+  (lib (name "Telltale_icons")(type "KiCad")(uri "/home/kjelle/Documents/cygni/cts-idiot-lights/pcb/libs/Telltale_icons")(options "")(descr ""))
+  (lib (name "Hardware")(type "KiCad")(uri "/home/kjelle/Documents/cygni/cts-idiot-lights/pcb/libs/SparkFun-KiCad-Libraries/Footprints/Hardware.pretty")(options "")(descr ""))
+)
