@@ -4,3 +4,6 @@
 [submodule "pcb/libs/Raspberry_Pi_Pico_Kicad_Files"]
 	path = pcb/libs/Raspberry_Pi_Pico_Kicad_Files
 	url = git@github.com:bdubs-astro/Raspberry_Pi_Pico_Kicad_Files.git
+[submodule "pcb/libs/SparkFun-KiCad-Libraries"]
+	path = pcb/libs/SparkFun-KiCad-Libraries
+	url = git@github.com:sparkfun/SparkFun-KiCad-Libraries.git
