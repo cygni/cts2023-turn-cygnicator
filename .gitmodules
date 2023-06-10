@@ -7,3 +7,9 @@
 [submodule "pcb/libs/SparkFun-KiCad-Libraries"]
 	path = pcb/libs/SparkFun-KiCad-Libraries
 	url = git@github.com:sparkfun/SparkFun-KiCad-Libraries.git
+[submodule "pcb/libs/ki-lime-pi-pico"]
+	path = pcb/libs/ki-lime-pi-pico
+	url = git@github.com:recursivenomad/ki-lime-pi-pico.git
+[submodule "pcb/libs/KiCad-RP-Pico"]
+	path = pcb/libs/KiCad-RP-Pico
+	url = git@github.com:ncarandini/KiCad-RP-Pico.git
