@@ -2300,7 +2300,7 @@
     (property "Value" "Buzzer" (at 173.99 102.235 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Buzzer_Beeper:PUIAudio_SMT_0825_S_4_R" (at 169.545 97.79 90)
+    (property "Footprint" "Buzzer_Beeper:Buzzer_CUI_CPT-9019S-SMT" (at 169.545 97.79 90)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (at 169.545 97.79 90)
