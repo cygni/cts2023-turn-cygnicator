@@ -5572,7 +5572,7 @@
     (property "ki_description" "Versatile and inexpensive microcontroller module (with full pinout for reflow soldering) powered by RP2040 dual-core Arm Cortex-M0+ processor up to 133 MHz, 264kB SRAM, 2MB QSPI flash")
     (property "ki_keywords" "Raspberry Pi Pico microcontroller module RP2040 M0+ usb")
     (path "/f0d663c0-954b-49e0-a3df-3473a70e7df9")
-    (attr through_hole)
+    (attr smd)
     (fp_text reference "U1" (at 11.7475 24.765 90 unlocked) (layer "F.SilkS") hide
         (effects (font (size 1 1) (thickness 0.15)) (justify left))
       (tstamp 657c4ec3-6aeb-40a4-8e35-f911439d64f1)
@@ -5861,7 +5861,7 @@
       (stroke (width 0.12) (type solid)) (layer "F.SilkS") (tstamp 954701fb-9708-4c83-b2c7-aa3e80072df8))
     (fp_arc (start 10 -25.61) (mid 10.357937 -25.493944) (end 10.579676 -25.189937)
       (stroke (width 0.12) (type solid)) (layer "F.SilkS") (tstamp 5704394f-cd6e-403f-bafd-aa6221ea9a4e))
-    (fp_arc (start 10.579676 25.189937) (mid 10.35796 25.493961) (end 10 25.61)
+    (fp_arc (start 10.579676 25.189937) (mid 10.357949 25.493953) (end 10 25.61)
       (stroke (width 0.12) (type solid)) (layer "F.SilkS") (tstamp aedf6e57-bddf-49dd-94f4-3c06e4e150f3))
     (fp_circle (center -5.7 -23.5) (end -4.76 -23.5)
       (stroke (width 0.12) (type solid)) (fill none) (layer "F.SilkS") (tstamp 7c0c15cc-3340-43c4-97d5-673aa6469873))
