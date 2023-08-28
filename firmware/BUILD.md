@@ -1,3 +1,7 @@
+# Build Docker image to user for building
+```
+docker build --build-arg UID=$(id -u) -t ghcr.io/cygni/rpisdk:latest docker/
+```
 
 # Generate Makefile
 ```
