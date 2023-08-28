@@ -1,10 +1,18 @@
+# Build image
+# docker build -t ghcr.io/cygni/rpisdk:latest .
+
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
-build-essential cmake gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib git ca-certificates make python3
-ENTRYPOINT /bin/bash
+build-essential cmake gcc-arm-none-eabi libnewlib-arm-none-eabi \
+libstdc++-arm-none-eabi-newlib git ca-certificates make python3 \
+libusb-1.0-0-dev pkg-config
 
 ARG UID=1000
 RUN useradd -m -u ${UID} -s /bin/bash builder
+
+ENV PICO_SDK_PATH="/tmp/pico-sdk"
+ENV FREERTOS_KERNEL_PATH="/tmp/FreeRTOS-Kernel"
+
 USER builder
 RUN git clone https://github.com/raspberrypi/pico-sdk /tmp/pico-sdk && \
     cd /tmp/pico-sdk && \
@@ -14,5 +22,13 @@ RUN git clone https://github.com/FreeRTOS/FreeRTOS-Kernel.git /tmp/FreeRTOS-Kern
     git submodule update --init
 WORKDIR /tmp
 
-ENV PICO_SDK_PATH="/tmp/pico-sdk"
-ENV FREERTOS_KERNEL_PATH="/tmp/FreeRTOS-Kernel"
+USER root
+RUN git clone --depth 1 https://github.com/raspberrypi/picotool.git /tmp/picotool && \
+    cd /tmp/picotool && \
+    mkdir build || true && \
+    cd build && \
+    cmake .. && \
+    make
+
+RUN cp /tmp/picotool/build/picotool /bin/picotool && \
+    rm -rf /tmp/picotool
