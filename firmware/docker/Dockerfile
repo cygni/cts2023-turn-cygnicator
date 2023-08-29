@@ -1,5 +1,5 @@
 # Build image
-# docker build --build-arg UID=$(id -u) -t ghcr.io/cygni/rpisdk:latest .
+# docker build --build-arg UID=$(id -u) -t rpisdk:latest .
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
