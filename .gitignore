@@ -24,3 +24,31 @@ fp-info-cache
 # Autorouter files (exported from Pcbnew)
 *.dsn
 *.ses
+
+# CMake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# Binaries
+*.bin
+*.hex
+*.dis
+*.uf2
+*.elf
+*.map
+
+elf2uf2
+generated
+pioasm
+pico-sdk
+.cache
+build/

@@ -5,7 +5,7 @@ docker build --build-arg UID=$(id -u) -t rpisdk:latest docker/
 
 # Generate Makefile
 ```
-docker run --rm -v $(pwd):/tmp/app_dir -w /tmp/app_dir --name rpibuilder rpisdk:latest /bin/cmake .
+docker run --user $(id -u) --rm -v $(pwd):/tmp/app_dir -w /tmp/app_dir --name rpibuilder rpisdk:latest /bin/cmake .
 ```
 
 # Build Makefile
