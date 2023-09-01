@@ -5861,7 +5861,7 @@
       (stroke (width 0.12) (type solid)) (layer "F.SilkS") (tstamp 954701fb-9708-4c83-b2c7-aa3e80072df8))
     (fp_arc (start 10 -25.61) (mid 10.357937 -25.493944) (end 10.579676 -25.189937)
       (stroke (width 0.12) (type solid)) (layer "F.SilkS") (tstamp 5704394f-cd6e-403f-bafd-aa6221ea9a4e))
-    (fp_arc (start 10.579676 25.189937) (mid 10.357946 25.493957) (end 10 25.61)
+    (fp_arc (start 10.579676 25.189937) (mid 10.357958 25.493991) (end 10 25.61)
       (stroke (width 0.12) (type solid)) (layer "F.SilkS") (tstamp aedf6e57-bddf-49dd-94f4-3c06e4e150f3))
     (fp_circle (center -5.7 -23.5) (end -4.76 -23.5)
       (stroke (width 0.12) (type solid)) (fill none) (layer "F.SilkS") (tstamp 7c0c15cc-3340-43c4-97d5-673aa6469873))
@@ -19808,7 +19808,7 @@
       )
     )
   )
-  (gr_text "turn-cygnicator v.1.2" (at 226.06 99.06 90) (layer "F.SilkS") (tstamp cf93694e-d504-41cf-b729-4fc6360321ba)
+  (gr_text "turn-cygnicator v.1.3" (at 226.06 99.06 90) (layer "F.SilkS") (tstamp cf93694e-d504-41cf-b729-4fc6360321ba)
     (effects (font (size 1 1) (thickness 0.25) bold) (justify left bottom))
   )
 
