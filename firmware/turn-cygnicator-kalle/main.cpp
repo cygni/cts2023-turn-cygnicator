@@ -1,23 +1,25 @@
-// FreeRTOS libs
 #include <FreeRTOS.h>
 #include <inttypes.h>
 #include <semphr.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <task.h>
 
 #include <climits>
 
-#include "hardware/clocks.h"
-#include "pico/stdlib.h"
-
-#ifndef RUN_FREERTOS_ON_CORE
-#define RUN_FREERTOS_ON_CORE 0
-#endif
+#include "cygnicator_gpio.h"
+#include "cygnicator_headlights.h"
+#include "hardware/gpio.h"
+#include "hardware/pwm.h"
+#include "pico/stdio.h"
+#include "pico/time.h"
+#include "pico/types.h"
+#include "portmacro.h"
 
 enum GPIO_PINS : uint32_t {
   L_INDCR_BTN = 14,
   R_INDCR_BTN = 15,
-  BREAK_BTN = 20,
+  BRAKE_BTN = 20,
   HAZARD_BTN = 21,
   BUZZER = 22,
 };
@@ -26,145 +28,293 @@ enum TellTaleCmd : uint32_t {
   Left = 0,
   Right = 1,
   Hazard = 2,
-  Break = 3,
-};
-
-enum LEDMatrixIndex : uint32_t {
-  FL = 0,
-  FR = 1,
-  RL = 2,
-  RR = 3,
-  SIZE_LIMIT,
-};
-
-uint32_t ledMatrix[LEDMatrixIndex::SIZE_LIMIT][LEDMatrixIndex::SIZE_LIMIT] = {
-    {2, 3, 4, 5},      // FL
-    {6, 7, 8, 9},      // FR
-    {10, 11, 12, 13},  // RL
-    {19, 18, 17, 16},  // RR
+  Brake = 3,
 };
 
 struct ButtonAction {
   uint32_t gpio;    // GPIO to poll
-  TellTaleCmd cmd;  // command to send on interrupt
+  TellTaleCmd cmd;  // command to send on high read
 };
 
-TaskHandle_t hLEDControllerFront;
-TaskHandle_t hLEDControllerRear;
-TaskHandle_t hLeftButtonHandler;
-TaskHandle_t hRightButtonHandler;
+struct HeadlightTaskParameters {
+  HeadlightRowAction onHazard;
+  HeadlightRowAction onBrake;
+  HeadlightRowAction onTurnRight;
+  HeadlightRowAction onTurnLeft;
+  uint8_t const *leds;
+};
 
-TaskHandle_t notifyTasks[] = {hLEDControllerFront,
-                              hLEDControllerRear};  // task to send command to
+struct ButtonTaskParameters {
+  ButtonAction onHazard;
+  ButtonAction onBrake;
+  ButtonAction onTurnRight;
+  ButtonAction onTurnLeft;
+};
 
-ButtonAction lIndcrAction = {L_INDCR_BTN, TellTaleCmd::Left};
-ButtonAction rIndcrAction = {R_INDCR_BTN, TellTaleCmd::Right};
-ButtonAction hazardAction = {HAZARD_BTN, TellTaleCmd::Hazard};
-ButtonAction breakAction = {BREAK_BTN, TellTaleCmd::Break};
+QueueHandle_t mailbox;
 
-static void tExteriorLight(void *pvParameter) {
-  TaskStatus_t xTaskDetails;
-  vTaskGetInfo(
-      /* Setting xTask to NULL will return information on the calling task.
-       */
-      NULL, &xTaskDetails, pdFALSE, eInvalid);
+TaskHandle_t hLEDControllerFrontRight;
+TaskHandle_t hLEDControllerFrontLeft;
+TaskHandle_t hLEDControllerRearRight;
+TaskHandle_t hLEDControllerRearLeft;
+TaskHandle_t hButtonHandler;
 
-  printf("[tExteriorLight:%s]: Started\n", xTaskDetails.pcTaskName);
+TaskHandle_t notifyTasks[] = {hLEDControllerFrontRight, hLEDControllerFrontLeft,
+                              hLEDControllerRearRight, hLEDControllerRearLeft};
 
-  uint32_t ulNotifiedValue;
-  uint8_t tick = 0;  // start on tock
+void play_tone() {
+  const uint slice_num = pwm_gpio_to_slice_num(gpio_speaker);
+  pwm_set_wrap(slice_num, 8590);
+  pwm_set_gpio_level(gpio_speaker, 8192);
+}
 
-  while (true) {
-    // Wait for notify to continue
-    xTaskNotifyWait(0, ULONG_MAX, &ulNotifiedValue, portMAX_DELAY);
+void stop_tone() { pwm_set_gpio_level(gpio_speaker, 0); }
 
-    switch (ulNotifiedValue) {
-      case TellTaleCmd::Left:
-        printf("[tExteriorLight:%s]: Left %d\n", xTaskDetails.pcTaskName, tick);
-        for (auto ledrow : ledMatrix[LEDMatrixIndex::FL]) {
-          gpio_put(ledrow, tick);
-        }
-        break;
-
-      case TellTaleCmd::Right:
-        printf("[tExteriorLight:%s]: Right\n", xTaskDetails.pcTaskName);
-        for (auto ledrow : ledMatrix[LEDMatrixIndex::FR]) {
-          gpio_put(ledrow, tick);
-        }
-        break;
-
-      case TellTaleCmd::Hazard:
-        printf("[tExteriorLight]: Hazard\n");
-        break;
-    }
-
-    tick = tick ? 0 : 1;
-    vTaskDelay(1000);
+static void ledRightToLeft(uint8_t const *leds, TickType_t delayTicks) {
+  for (uint8_t i = 0; i < HeadlightRow::SIZE_LIMIT; i++) {
+    uint8_t led = leds[i];
+    gpio_put(led, true);
+    vTaskDelay(delayTicks);
+    gpio_put(led, false);
+    vTaskDelay(delayTicks);
   }
 }
 
-static void tButtonHandler(void *pvParameter) {
-  // TaskStatus_t xTaskDetails;
-  // vTaskGetInfo(
-  //     /* Setting xTask to NULL will return information on the calling task.
-  //     */ NULL, &xTaskDetails, pdFALSE, eInvalid);
-  printf("[tButtonHandler]: Started\n");
+static void ledLeftToRight(uint8_t const *leds, TickType_t delayTicks) {
+  for (uint8_t i = HeadlightRow::SIZE_LIMIT - 1; i > 0; i--) {
+    uint8_t led = leds[i];
+    gpio_put(led, true);
+    vTaskDelay(delayTicks);
+    gpio_put(led, false);
+    vTaskDelay(delayTicks);
+  }
+}
 
-  ButtonAction *btnAction = (ButtonAction *)pvParameter;
-  configASSERT(btnAction);
+static void ledHazard(uint8_t const *leds, TickType_t delayTicks) {
+  for (uint8_t i = 0; i < HeadlightRow::SIZE_LIMIT; i++) {
+    uint8_t led = leds[i];
+    gpio_put(led, true);
+  }
+  vTaskDelay(delayTicks);
+  for (uint8_t i = 0; i < HeadlightRow::SIZE_LIMIT; i++) {
+    uint8_t led = leds[i];
+    gpio_put(led, false);
+  }
+}
+
+// static void ledToggle(uint8_t const *leds) {
+//   for (uint8_t i = 0; i < HeadlightRow::SIZE_LIMIT; i++) {
+//     uint8_t led = leds[i];
+//     gpio_put(led);
+//   }
+// }
+
+static void handleHeadlightRowAction(uint8_t const *leds,
+                                     HeadlightRowAction action) {
+  switch (action) {
+    case (HeadlightRowAction::RIGHT_TO_LEFT): {
+      play_tone();
+      ledRightToLeft(leds, pdMS_TO_TICKS(25));
+      stop_tone();
+      break;
+    }
+    case (HeadlightRowAction::LEFT_TO_RIGHT): {
+      play_tone();
+      ledLeftToRight(leds, pdMS_TO_TICKS(25));
+      stop_tone();
+      break;
+    }
+    case (HeadlightRowAction::SIMULTANEOUSLY): {
+      ledHazard(leds, pdMS_TO_TICKS(250));
+      break;
+    }
+    case (HeadlightRowAction::TOGGLE): {
+      ledHazard(leds, pdMS_TO_TICKS(250));
+      break;
+    }
+    case (HeadlightRowAction::NOP):
+    default: {
+      // Do nothing
+    }
+  }
+}
+
+static void handleTelltaleCmd(HeadlightTaskParameters *parameters,
+                              TellTaleCmd cmd) {
+  switch (cmd) {
+    case (TellTaleCmd::Brake): {
+      handleHeadlightRowAction(parameters->leds, parameters->onBrake);
+      break;
+    }
+    case (TellTaleCmd::Hazard): {
+      handleHeadlightRowAction(parameters->leds, parameters->onHazard);
+      break;
+    }
+    case (TellTaleCmd::Right): {
+      handleHeadlightRowAction(parameters->leds, parameters->onTurnRight);
+      break;
+    }
+    case (TellTaleCmd::Left): {
+      handleHeadlightRowAction(parameters->leds, parameters->onTurnLeft);
+      break;
+    }
+  }
+}
+
+static void tHeadlight(void *parameters) {
+  HeadlightTaskParameters *headlightParameters =
+      (HeadlightTaskParameters *)(parameters);
+  uint8_t const *leds = headlightParameters->leds;
+  // printf("[tExteriorLight:%s]: Started\n", xTaskDetails.pcTaskName);
+
+  uint32_t telltaleCmd;
 
   while (true) {
-    if (!gpio_get(btnAction->gpio)) {
-      for (auto task : notifyTasks) {
-        printf("[tButtonHandler]: Notifying cmd %d\n", btnAction->cmd);
-        xTaskNotify(task, static_cast<uint32_t>(btnAction->cmd),
-                    eSetValueWithOverwrite);
-      }
+    // Wait for notify to continue
+    // xTaskNotifyWait(0, ULONG_MAX, &telltaleCmd, portMAX_DELAY);
+    xQueueReceive(mailbox, &telltaleCmd, portMAX_DELAY);
+
+    handleTelltaleCmd(headlightParameters, (TellTaleCmd)telltaleCmd);
+
+    vTaskDelay(250);
+  }
+}
+
+static bool readButtonNotify(ButtonAction *action) {
+  bool btnPressed = !gpio_get(action->gpio);
+
+  if (btnPressed) {
+    for (TaskHandle_t task : notifyTasks) {
+      printf("[tButtonHandler]: Notifying cmd %d\n", action->cmd);
+      // xTaskNotify(task, static_cast<uint32_t>(action->cmd),
+      //             eSetValueWithOverwrite);
+      xQueueSend(mailbox, &action->cmd, 0);
+    }
+  }
+  return btnPressed;
+}
+
+static void tButtonHandler(void *parameters) {
+  ButtonTaskParameters *btnParameters = (ButtonTaskParameters *)parameters;
+  // configASSERT(btnAction);
+
+  while (true) {
+    vTaskDelay(1);
+
+    // Continue to next cycle if one event is triggered.
+    // This prevents multiple events in the mailbox at the same time.
+    if (readButtonNotify(&btnParameters->onHazard)) {
+      continue;
     }
 
-    vTaskDelay(25);
+    if (readButtonNotify(&btnParameters->onTurnRight)) {
+      continue;
+    }
+
+    if (readButtonNotify(&btnParameters->onTurnLeft)) {
+      continue;
+    }
+
+    if (readButtonNotify(&btnParameters->onBrake)) {
+      // TODO send event if brake off
+      continue;
+    }
   }
 }
 
 int main(void) {
   stdio_init_all();
 
-  printf("Initialising RPico\n");
+  gpio_init_mask(gpio_output_pins_mask);
+  gpio_init_mask(gpio_input_pins_mask);
+  gpio_set_dir_out_masked(gpio_output_pins_mask);
+  gpio_set_dir_in_masked(gpio_input_pins_mask);
+
+  gpio_set_function(gpio_speaker, GPIO_FUNC_PWM);
+  uint8_t const slice_num = pwm_gpio_to_slice_num(gpio_speaker);
+  pwm_set_enabled(slice_num, true);
+
+  // say hello, so we know the program is running
+  play_tone();
+  gpio_set_mask(gpio_output_pins_mask);
+  gpio_set_mask(gpio_input_pins_mask);
+  sleep_ms(1000);
+  stop_tone();
+  gpio_clr_mask(gpio_input_pins_mask);
+  gpio_clr_mask(gpio_output_pins_mask);
 
   gpio_init(L_INDCR_BTN);
-  gpio_set_dir(L_INDCR_BTN, GPIO_IN);
-  gpio_pull_up(L_INDCR_BTN);
-
   gpio_init(R_INDCR_BTN);
-  gpio_set_dir(R_INDCR_BTN, GPIO_IN);
-  gpio_pull_up(R_INDCR_BTN);
-
   gpio_init(HAZARD_BTN);
+  gpio_init(BRAKE_BTN);
+  gpio_set_dir(L_INDCR_BTN, GPIO_IN);
+  gpio_set_dir(R_INDCR_BTN, GPIO_IN);
   gpio_set_dir(HAZARD_BTN, GPIO_IN);
+  gpio_set_dir(BRAKE_BTN, GPIO_IN);
+  gpio_pull_up(L_INDCR_BTN);
+  gpio_pull_up(R_INDCR_BTN);
   gpio_pull_up(HAZARD_BTN);
+  gpio_pull_up(BRAKE_BTN);
 
-  gpio_init(BREAK_BTN);
-  gpio_set_dir(BREAK_BTN, GPIO_IN);
-  gpio_pull_up(BREAK_BTN);
+  mailbox = xQueueCreate(4, sizeof(uint32_t));
 
-  for (int i = 0; i < LEDMatrixIndex::SIZE_LIMIT; i++) {
-    for (int j = 0; j < LEDMatrixIndex::SIZE_LIMIT; j++) {
-      gpio_init(ledMatrix[i][j]);
-      gpio_set_dir(ledMatrix[i][j], GPIO_OUT);
-    }
-  }
+  HeadlightTaskParameters paramsFrontRight = {
+      .onHazard = HeadlightRowAction::SIMULTANEOUSLY,
+      .onBrake = HeadlightRowAction::NOP,
+      .onTurnRight = HeadlightRowAction::LEFT_TO_RIGHT,
+      .onTurnLeft = HeadlightRowAction::NOP,
+      headlights[FRONT_RIGHT],
+  };
+  HeadlightTaskParameters paramsFrontLeft = {
+      .onHazard = HeadlightRowAction::SIMULTANEOUSLY,
+      .onBrake = HeadlightRowAction::NOP,
+      .onTurnRight = HeadlightRowAction::NOP,
+      .onTurnLeft = HeadlightRowAction::RIGHT_TO_LEFT,
+      headlights[FRONT_LEFT],
+  };
+  HeadlightTaskParameters paramsRearRight = {
+      .onHazard = HeadlightRowAction::SIMULTANEOUSLY,
+      .onBrake = HeadlightRowAction::SIMULTANEOUSLY,
+      .onTurnRight = HeadlightRowAction::LEFT_TO_RIGHT,
+      .onTurnLeft = HeadlightRowAction::NOP,
+      headlights[REAR_RIGHT],
+  };
+  HeadlightTaskParameters paramsRearLeft = {
+      .onHazard = HeadlightRowAction::SIMULTANEOUSLY,
+      .onBrake = HeadlightRowAction::SIMULTANEOUSLY,
+      .onTurnRight = HeadlightRowAction::NOP,
+      .onTurnLeft = HeadlightRowAction::RIGHT_TO_LEFT,
+      headlights[REAR_LEFT],
+  };
+  ButtonTaskParameters paramsButton = {
+      .onHazard = {HAZARD_BTN, TellTaleCmd::Hazard},
+      .onBrake = {BRAKE_BTN, TellTaleCmd::Brake},
+      .onTurnRight = {R_INDCR_BTN, TellTaleCmd::Right},
+      .onTurnLeft = {L_INDCR_BTN, TellTaleCmd::Left},
+  };
 
-  // TODO init GPIOs
-  xTaskCreate(tExteriorLight, "Front lights", 256, NULL, 1,
-              &hLEDControllerFront);
+  xTaskCreate(tHeadlight, headlightRowStrings[FRONT_RIGHT],
+              configMINIMAL_STACK_SIZE, (void *)&paramsFrontRight, 0,
+              &hLEDControllerFrontRight);
+  xTaskCreate(tHeadlight, headlightRowStrings[FRONT_LEFT],
+              configMINIMAL_STACK_SIZE, (void *)&paramsFrontLeft, 0,
+              &hLEDControllerFrontLeft);
+  xTaskCreate(tHeadlight, headlightRowStrings[REAR_LEFT],
+              configMINIMAL_STACK_SIZE, (void *)&paramsRearLeft, 0,
+              &hLEDControllerRearRight);
+  xTaskCreate(tHeadlight, headlightRowStrings[REAR_RIGHT],
+              configMINIMAL_STACK_SIZE, (void *)&paramsRearRight, 0,
+              &hLEDControllerRearLeft);
 
-  xTaskCreate(tExteriorLight, "Rear lights", 256, NULL, 1, &hLEDControllerRear);
-
-  xTaskCreate(tButtonHandler, "Left Button handler", 256, &lIndcrAction, 1,
-              &hLeftButtonHandler);
-  // xTaskCreate(tButtonHandler, "Right Button handler", 256, &rIndcrAction, 1,
+  xTaskCreate(tButtonHandler, "Buttonhandlertask", configMINIMAL_STACK_SIZE,
+              &paramsButton, 0, &hButtonHandler);
+  // xTaskCreate(tButtonHandler, "Right Button handler", 50, &rIndcrAction, 0,
   //             &hRightButtonHandler);
+  // xTaskCreate(tButtonHandler, "Hazard Button handler", 50, &hazardAction, 0,
+  //             &hHazardButtonHandler);
+  // xTaskCreate(tButtonHandler, "Brake Button handler", 50, &brakeAction, 0,
+  //             &hBrakeButtonHandler);
 
-  printf("Finished initialising RPico\n");
+  printf("Started");
   vTaskStartScheduler();
 }
