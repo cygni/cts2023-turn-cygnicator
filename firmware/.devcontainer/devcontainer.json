@@ -1,5 +1,5 @@
 {
-    "name": "HP SDK",
+    "name": "RPI Builder",
     "build": {
         "dockerfile": "../docker/Dockerfile",
         "args": {

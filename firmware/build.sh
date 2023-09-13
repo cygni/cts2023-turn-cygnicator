@@ -8,8 +8,12 @@ if [[ "$(docker images -q rpisdk:latest 2> /dev/null)" == "" ]]; then
   docker build --build-arg UID="$(id -u)" -t rpisdk:latest docker/
 fi
 
-docker run --rm --user "$(id -u)" -v "$(pwd)":"$(pwd)" -w "$(pwd)" --name rpibuilder rpisdk:latest /bin/cmake .
-docker run --rm --user "$(id -u)" -v "$(pwd)":"$(pwd)" -w "$(pwd)" --name rpibuilder rpisdk:latest /bin/make
+firmware_dir="$(pwd)"
+mkdir build
+pushd build
+docker run --rm --user "$(id -u)" -v "${firmware_dir}":"${firmware_dir}" -w "$(pwd)" --name rpibuilder rpisdk:latest /bin/cmake ..
+docker run --rm --user "$(id -u)" -v "${firmware_dir}":"${firmware_dir}" -w "$(pwd)" --name rpibuilder rpisdk:latest /bin/make
+popd
 
 echo -e "\n${YELLOW}=== Output Files ===${GREEN}"
 find . -name "*.uf2"

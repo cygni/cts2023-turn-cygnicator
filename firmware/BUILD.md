@@ -3,14 +3,9 @@
 docker build --build-arg UID=$(id -u) -t rpisdk:latest docker/
 ```
 
-# Generate Makefile
+# Build UF2 files
 ```
-docker run --user $(id -u) --rm -v $(pwd):/tmp/app_dir -w /tmp/app_dir --name rpibuilder rpisdk:latest /bin/cmake .
-```
-
-# Build Makefile
-```
-docker run --rm -v $(pwd):/tmp/app_dir -w /tmp/app_dir --name rpibuilder rpisdk:latest /bin/make
+./build.sh
 ```
 
 # Run Picotool
