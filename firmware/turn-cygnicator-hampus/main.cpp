@@ -14,6 +14,11 @@
 #include <stdio.h>
 #include <task.h>
 
+TaskHandle_t front_left_handle;
+TaskHandle_t front_right_handle;
+TaskHandle_t rear_left_handle;
+TaskHandle_t rear_right_handle;
+
 void led_task(void *parameters) {
   uint8_t *const gpios = (uint8_t *)(parameters);
 
@@ -25,6 +30,20 @@ void led_task(void *parameters) {
       gpio_put(pin, false);
       vTaskDelay(pdMS_TO_TICKS(25));
     }
+  }
+}
+
+void button_poll_task(void *unused) {
+  (void)unused;
+
+  for (;;) {
+    if (gpio_get(gpio_btn_left_indicator)) {
+      vTaskResume(front_left_handle);
+    } else if (gpio_get(gpio_btn_right_indicator)) {
+      vTaskResume(front_right_handle);
+    }
+
+    taskYIELD();
   }
 }
 
@@ -59,16 +78,12 @@ void init_pico(void) {
 int main(void) {
   init_pico();
 
-  TaskHandle_t front_left_handle;
   xTaskCreate(led_task, "Front lights left", 100,
               (void *)&gpios_light_front_left, 0, &front_left_handle);
-  TaskHandle_t front_right_handle;
   xTaskCreate(led_task, "Front lights right", 100,
               (void *)&gpios_light_front_right, 0, &front_right_handle);
-  TaskHandle_t rear_left_handle;
   xTaskCreate(led_task, "Rear lights left", 100, (void *)&gpios_light_rear_left,
               0, &rear_left_handle);
-  TaskHandle_t rear_right_handle;
   xTaskCreate(led_task, "Rear lights right", 100,
               (void *)&gpios_light_rear_right, 0, &rear_right_handle);
 
