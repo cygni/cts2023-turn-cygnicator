@@ -12,8 +12,8 @@ firmware_dir="$(pwd)"
 mkdir build
 pushd build
 docker run --rm --user "$(id -u)" -v "${firmware_dir}":"${firmware_dir}" -w "$(pwd)" --name rpibuilder rpisdk:latest /usr/bin/cmake ..
-docker run --rm --user "$(id -u)" -v "${firmware_dir}":"${firmware_dir}" -w "$(pwd)" --name rpibuilder rpisdk:latest /usr/bin/make
 popd
+docker run --rm --user "$(id -u)" -v "${firmware_dir}":"${firmware_dir}" -w "$(pwd)" --name rpibuilder rpisdk:latest /usr/bin/make
 
 echo -e "\n${YELLOW}=== Output Files ===${GREEN}"
 find . -name "*.uf2"
