@@ -1,5 +1,5 @@
-#ifndef LED_H
-#define LED_H
+#ifndef CYGNI_HEADLIGHT_H
+#define CYGNI_HEADLIGHT_H
 
 #include <stdint.h>
 
