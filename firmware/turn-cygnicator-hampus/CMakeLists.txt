@@ -3,7 +3,7 @@ project(turn-cygnicator-hampus C CXX ASM)
 pico_sdk_init()
 
 add_executable(${PROJECT_NAME}
-        main.cpp
+        main.c
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra")
