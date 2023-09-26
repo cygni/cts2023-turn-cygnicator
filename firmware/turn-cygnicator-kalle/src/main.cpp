@@ -49,7 +49,7 @@ static void tHeadlight(void *parameters) {
   uint8_t const *leds = headlights[headlightParameters->headlightRow];
 
   while (true) {
-    xQueueReceive(mailbox, &telltaleCmd, portMAX_DELAY);
+    xQueuePeek(mailbox, &telltaleCmd, portMAX_DELAY);
 
     handleTelltaleCmd(headlightParameters, (TellTaleCmd)telltaleCmd, leds);
 
@@ -63,7 +63,7 @@ static bool readButtonNotify(ButtonAction *action) {
   if (btnPressed) {
     for (TaskHandle_t task : notifyTasks) {
       printf("[tButtonHandler]: Notifying cmd %d\n", action->cmd);
-      xQueueSend(mailbox, &action->cmd, 0);
+      xQueueOverwrite(mailbox, &action->cmd);
     }
   }
   return btnPressed;
