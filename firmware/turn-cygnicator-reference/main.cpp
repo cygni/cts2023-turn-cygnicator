@@ -30,15 +30,31 @@ typedef enum {
     ERROR = 5,
 } states_t;
 
-typedef struct Job_payload {
-    const uint8_t* led_group_p;
-    SemaphoreHandle_t* semaphore_p;
+
+typedef struct stamp {
     TickType_t current_time;
     TickType_t deadline_time;
-} Job_payload;
+} stamp_clock_message_t;
+
+typedef struct led {
+    const uint8_t* led_group_p;
+    SemaphoreHandle_t* semaphore_p;
+    stamp_clock_message_t time_stamp;
+} led_message_t;
+
+typedef struct buzzer{
+    uint8_t gpio_speaker;
+    SemaphoreHandle_t* semaphore_p;
+    stamp_clock_message_t time_stamp;
+} buzzer_message_t;
+
+typedef struct opportunity {
+    uint8_t id;
+    void* msg;
+} opportunity_payload_t;
 
 static void gpio_callback(uint gpio, uint32_t events) {
-  (void)events;
+  (void) events;
   BaseType_t xHigherPriorityTaskWoken;
   states_t next_state;
 
@@ -94,6 +110,17 @@ static void init_pico(void) {
   gpio_set_irq_enabled_with_callback(gpio_btn_brake,
                                      GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL,
                                      true, &gpio_callback);
+}
+
+void led_worker() {
+    Job_payload job;
+
+    for (;;) {
+        // idle until there is something to pick from the queue
+        xQueueReceive( state_queue, &job, portMAX_DELAY);
+
+
+    }
 }
 
 void state_machine(void* params) {
