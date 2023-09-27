@@ -6,7 +6,7 @@ add_executable(${PROJECT_NAME}
         main.c
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror -Wall -Wextra")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
 
 target_link_libraries(${PROJECT_NAME}
         pico_stdlib
