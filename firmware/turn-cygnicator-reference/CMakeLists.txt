@@ -1,4 +1,4 @@
-project(turn-cygnicator-rasmus C CXX ASM)
+project(turn-cygnicator-reference C CXX ASM)
 
 pico_sdk_init()
 

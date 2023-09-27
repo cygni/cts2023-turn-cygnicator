@@ -31,9 +31,10 @@ typedef enum {
 } states_t;
 
 typedef struct Job_payload {
+    const uint8_t* led_group_p;
     SemaphoreHandle_t* semaphore_p;
-    uint8_t* led_group_p;
     TickType_t current_time;
+    TickType_t deadline_time;
 } Job_payload;
 
 static void gpio_callback(uint gpio, uint32_t events) {
@@ -97,7 +98,7 @@ static void init_pico(void) {
 
 void state_machine(void* params) {
     // FL, RL, FR, RR
-    // Pass pointer reference to tasks through queue
+    // Pass pointer reference of semphore to tasks through queue
     states_t next_state;
     states_t current_state = IDLE;
     SemaphoreHandle_t x_fl_semaphore = xSemaphoreCreateMutex();
@@ -110,6 +111,11 @@ void state_machine(void* params) {
 
         if (current_state == IDLE) {
             // Wait for next event
+            // according to freertos API we have to take a semaphore before we can give?
+            xSemaphoreTake(x_fl_semaphore, 0);
+            xSemaphoreTake(x_rl_semaphore, 0);
+            xSemaphoreTake(x_fr_semaphore, 0);
+            xSemaphoreTake(x_rr_semaphore, 0);
             xQueueReceive( state_queue, &next_state, portMAX_DELAY);
             current_state = next_state;
             continue;
