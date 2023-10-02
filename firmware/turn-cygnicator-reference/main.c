@@ -269,7 +269,7 @@ void state_machine(void *params)
 
         }
         
-        printf("current state[%d -> %d] \n",(int)current_state, (int)next_state);
+        printf("current state[%d -> %d] \n",current_state, next_state);
         switch (current_state)
         {
         // check break first since that cycle time will be different from ordinary blink cycle time

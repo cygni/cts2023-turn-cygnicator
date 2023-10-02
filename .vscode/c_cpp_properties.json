@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/rasmus/Documents/cygni/pico-sdk/**"
+                "$PICO_SDK_PATH/**"
             ],
             "defines": [],
             "compilerPath": "/usr/lib/ccache/clang-14",
