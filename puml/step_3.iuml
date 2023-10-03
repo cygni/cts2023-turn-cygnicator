@@ -1,0 +1,25 @@
+@startuml
+
+concise "Button Command" as button
+binary "TASK 1" as t1
+binary "TASK 2" as t2
+
+@0
+t1 is IDLE
+t2 is IDLE
+
+@50
+button is "HAZZARD"
+button -> t1
+button -> t2
+t1 is HIGH
+t2 is HIGH
+
+
+@160
+button is "HAZZARD"
+button -> t2
+t1 is LOW
+t2 is LOW
+
+@enduml
