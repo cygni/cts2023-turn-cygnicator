@@ -86,3 +86,77 @@ Fixed interval is XXXXX Hz!!! TODOO
 Here is a gif of how the results will look like:
 !!!TODO ADD A GIF WITH REFERENCE SOLUTION!!!
 
+# Workshop
+
+## Preparation
+
+Set up environment, build and flash test code provided by team task force
+
+## Interrupt Handling
+
+Introduce pico SDK calls to configure interrupt handling and callbacks on button presses.
+
+Introduce our API for how to turn on leds
+
+Introduce FreeRTOS calls that should be used within ISR (?)
+
+## Step 1: Handle button commands
+
+Implement logic to handle the buttons TURN RIGHT, TURN LEFT, HAZZARD, BREAK
+
+### Task scheduling
+
+Introduce FreeRTOS API to how to create tasks and communicate between tasks e.g. queues, mailboxes whatever
+
+## Step 2: TURN LEFT and TURN RIGHT
+
+**Expected results:**
+
+* When TURN LEFT button is pressed the LHS LEDs should turn ON and RHS LEDs turn OFF. If the button is pressed again, the LHS LEDs should turn OFF
+* When TURN RIGHT button is pressed the RHS LEDs should turn on and LHS LEDs turn OFF. If the button is pressed again, the RHS LEDs should turn OFF
+
+### Syncing tasks
+Introduce FreeRTOS API on how to sync between tasks
+
+<img src="./puml/png/step_2.png" alt="step_2" />
+
+## Step 3: Hazzard
+
+**Expected results:**
+
+* When HAZZARD button is pressed both LHS and RHS should turn ON at the same time. When button is pressed again, both sides should turn OFF at the same time.
+
+<img src="./puml/png/step_3.png" alt="step_3" />
+
+## Step 4: Buzzer (TICK/TOCK sound)
+
+During a Turn indication there is a sound being played in the car to notify the driver. Some brands wants only a "Tick" when the LEDs goes from OFF -> ON and some wants both "Tick" and "Tock". Tick when LEDs goes from OFF -> ON and Tick when led goes from ON -> OFF.
+
+<img src="./puml/png/step_4.png" alt="step_4" />
+
+**Expected results:**
+* During HAZZARD/TURN LEFT/TURN RIGHT commands there should be a Tick/Tock sound being played when the corresponding LEDs turns ON/OFF
+
+## Step 5: Periodicity
+
+<img src="./puml/png/step_5.png" alt="step_5" />
+
+Until this point the LEDs are able to turn ON/OFF with button commands. However in the car this feature is no.....
+
+### Handle shared resources
+Introduce FreeRTOS API to handle shared resources: semaphores etc.
+
+**Expected results:**
+
+## Step 6: Break button
+
+**Expected results:**
+
+## Step 7: One Task that controlls each LED row
+
+T1 FRONT LEFT
+T2 REAR LEFT
+T3 FRONT RIGHT
+T4 REAR RIGHT
+
+**Expected results:**
