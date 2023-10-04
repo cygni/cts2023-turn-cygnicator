@@ -7,7 +7,7 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
   - [The Circuit Board (PCB)](#the-circuit-board-pcb)
     - [GPIO configuration table](#gpio-configuration-table)
   - [Workshop goals](#workshop-goals)
-- [Workshop](#workshop)
+- [Workshop preparation](#workshop-preparation)
   - [Preparation](#preparation)
   - [Prepare the development environment](#prepare-the-development-environment)
   - [How to build an image](#how-to-build-an-image)
@@ -16,7 +16,13 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
     - [Step 2: Flash image](#step-2-flash-image)
       - [Flashing using picotool](#flashing-using-picotool)
       - [Flashing by moving UF2 to mass-storage device](#flashing-by-moving-uf2-to-mass-storage-device)
-  - [Interrupt Handling](#interrupt-handling)
+- [Workshop starts here](#workshop-starts-here)
+  - [Pico SDK API - Interrupt Handling](#pico-sdk-api---interrupt-handling)
+    - [Cygnicator API](#cygnicator-api)
+    - [FreeRTOS Task API](#freertos-task-api)
+      - [xTaskCreate()](#xtaskcreate)
+      - [vTaskStartScheduler()](#vtaskstartscheduler)
+      - [vTaskDelay()](#vtaskdelay)
   - [Step 1: Handle button commands](#step-1-handle-button-commands)
     - [Task scheduling](#task-scheduling)
   - [Step 2: TURN LEFT and TURN RIGHT](#step-2-turn-left-and-turn-right)
@@ -116,9 +122,9 @@ Here is a gif of how the results will look like:
 
 In a normal car, when the hazard is on and the brake is issued, the hazard continues after the brake has been released. In this workshop we do not require this behavior instead it's up to the designer how to handle this. You will see in the time diagrams later in the workshop that we suggest that you need to reissue the hazard after braking. The same goes for turn indicator.
 
-# Workshop
+# Workshop preparation
 
-Now the actual workshop begins
+Prepare the workshop
 
 ## Preparation
 
@@ -126,7 +132,7 @@ This section is where you prepare and set up your development environment.
 At the end of this section, you should be able to know where to add changes, and how to build and flash. To test the circuit board, we have provided a blinky code example that is going to be flashed onto the board.
 
 Important folders and files:
-```
+```bash
 # Your workspace, feel free to add more workspaces if needed.
 firmware/turn-cygnicator
 
@@ -162,7 +168,7 @@ It takes a couple of minutes to download all dependencies, this command should o
 
 ## How to build an image
 
-```
+```bash
 cd firmware
 
 ./build.sh
@@ -196,7 +202,7 @@ Either use:
 
 For convenience, we have included a flash script that shortens the command that is needed to flash.
 Flash blinky sample code to verify that communication towards Pico works:
-```
+```bash
 cd firmware
 
 ./flash.sh blinky-demo/blinky-demo.uf2
@@ -207,14 +213,14 @@ The expected results should look like this:
 ![alt text](img/pcb_blinky-demo.gif "Enter programming mode")
 
 ..by default this command flashes `turn-cygnicator` workspace, which is where your implementation is located. **Refer to this flash instruction during the workshop:**
-```
+```bash
 cd firmware
 
 ./flash.sh
 ```
 
 **Troubleshooting flash step:**
-```
+```bash
 # Command that you run
 $ docker run \
   --rm \
@@ -248,13 +254,82 @@ ERROR: Unable to access device to reboot it; Use sudo or setup a udev rule
 
 TODO
 
-## Interrupt Handling
+# Workshop starts here
 
-Introduce pico SDK calls to configure interrupt handling and callbacks on button presses.
+Now the actual workshop starts
 
-Introduce our API for how to turn on leds
+## Pico SDK API - Interrupt Handling
 
-Introduce FreeRTOS calls that should be used within ISR (?)
+TODO Introduce pico SDK calls to configure interrupt handling and callbacks on button presses.
+
+
+### Cygnicator API
+
+TODO Introduce our API for how to turn on LED rows
+### FreeRTOS Task API
+
+A real time application that uses an RTOS can be structured as a set of independent tasks. Each task executes within its own context with no coincidental dependency on other tasks within the system or the RTOS scheduler itself. Only one task within the application can be executing at any point in time and the real time RTOS scheduler is responsible for deciding which task this should be. The RTOS scheduler may therefore repeatedly start and stop each task (swap each task in and out) as the application executes. As a task has no knowledge of the RTOS scheduler activity it is the responsibility of the real time RTOS scheduler to ensure that the processor context (register values, stack contents, etc) when a task is swapped in is exactly that as when the same task was swapped out. To achieve this each task is provided with its own stack. When the task is swapped out the execution context is saved to the stack of that task so it can also be exactly restored when the same task is later swapped back in. 
+
+
+This is a simplified task state diagram, containing only the states that we care about in this workshop:
+
+![alt text](img/freertos/freertos_simplified_task_states.png "Simplified task state diagram")
+
+Tasks are automatically in ready state when created. The RTOS scheduler decides what task to run at a time. An example of a blocking API call is vTaskDelay.
+
+Looking for more information? These are the sources we have used:
+| Description | Link |
+| ------------ | --- |
+| FreeRTOS what is a task? | [link](https://www.freertos.org/taskandcr.html) |
+| FreeRTOS tasks states | [link](https://www.freertos.org/RTOS-task-states.html) |
+| FreeRTOS Implementing tasks | [link](https://www.freertos.org/implementing-a-FreeRTOS-task.html) |
+| FreeRTOS xTaskCreate API | [link](https://www.freertos.org/a00125.html) |
+| FreeRTOS vTaskStartScheduler API | [link](https://www.freertos.org/a00132.html) |
+| FreeRTOS vTaskDelay API | [link](https://www.freertos.org/a00127.html) |
+
+
+#### xTaskCreate()
+
+Create a new task and add it to the list of tasks that are ready to run.
+
+#### vTaskStartScheduler()
+
+Starts the RTOS scheduler. After calling the RTOS kernel has control over which tasks are executed and when. Normally this function is called from within main.c.
+
+Example usage:
+```cpp
+
+static void vTaskCode(void *parameters) {
+  for(;;)
+  {
+    // Do something here
+  }
+
+  // Tasks normally never exits
+}
+
+ void main()
+ {
+     // Tasks can be created before or after starting the RTOS
+     xTaskCreate( vTaskCode,
+                  "NAME",
+                  STACK_SIZE,
+                  NULL,
+                  tskIDLE_PRIORITY,
+                  NULL );
+
+
+     // Start the real time scheduler.
+     vTaskStartScheduler();
+
+     // Will not get here unless there is insufficient RAM.
+ }
+```
+
+#### vTaskDelay()
+
+TODO
+
 
 ## Step 1: Handle button commands
 
