@@ -33,4 +33,6 @@ RUN git clone --depth 1 https://github.com/raspberrypi/picotool.git /tmp/picotoo
 RUN cp /tmp/picotool/build/picotool /bin/picotool && \
     rm -rf /tmp/picotool
 
+RUN chown builder:builder /bin/picotool
+
 USER builder
