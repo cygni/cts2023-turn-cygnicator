@@ -160,13 +160,13 @@ firmware/inc/FreeRTOSConfig.h
 
 ## Prepare the development environment
 
-In other words, build the docker image `firmware/docker/Dockerfile` that contains the FreeRTOS kernel, pico SDK, picotool and other tools/libraries that are needed.
+In other words, build the docker image (`firmware/docker/Dockerfile`) that contains the FreeRTOS kernel, pico SDK, picotool and other tools/libraries that are needed.
 
 Run this command in the root folder of this repository:
 `docker build --build-arg UID="$(id -u)" -t rpisdk:latest docker/` or run
 `build_docker.sh`
 
-It takes about 5 minutes to download all dependencies, this command should only be run once.
+It takes a couple of minutes to download all dependencies, this command should only be run once.
 
 ## How to build an image
 
@@ -181,18 +181,63 @@ TODO how to build real workshop workspace
 Before flashing the image, the Pico needs to enter its programming mode.
 This is done by holding the BOOTSEL button (1/RED) and pressing the RESET button (2/BLUE) once while the BOOTSEL button is still held down.
 
-![alt text](img/pcb_flash_steps.png "Enter programming mode")
+![alt text](img/pcb_guide_flash_steps.gif "Enter programming mode")
 
 Now the Pico should have entered programming mode, it should appear to your host computer as a mass-storage device, like a USB memory stick. If it doesn't, you need to redo step 1.
 
 ### Step 2: Flash image
 
-There are two alternatives to flash.
-Either use picotool provided in the docker image or move UF2 image manually to mass-storage device.
+There are two alternatives to flash in this guide.
+
+Either use:
+- **picotool** provided in the docker image 
+- **move UF2 image manually** to mass-storage device.
 
 #### Flashing using picotool
 
-`docker run --rm -v $(pwd):/tmp/app_dir -w /tmp/app_dir --name rpibuilder --privileged rpisdk:latest /bin/picotool load -v -x turn-cygnicator/turn-cygnicator.uf2`
+Run this command from firmware folder:
+
+`docker run --rm -v $(pwd):$(pwd) -w $(pwd)/build --name rpibuilder --privileged --user=root rpisdk:latest /bin/picotool load -f -v -x <path to uf2>`
+
+
+To verify that this flashing method works, flash the blinky image:
+
+`docker run --rm -v $(pwd):$(pwd) -w $(pwd)/build --name rpibuilder --privileged --user=root rpisdk:latest /bin/picotool load -f -v -x blinky-demo/blinky-demo.uf2`
+
+The expected results should look like this:
+![alt text](img/pcb_blinky-demo.gif "Enter programming mode")
+
+
+**Troubleshooting:**
+```
+# Command that you run
+$ docker run \
+  --rm \
+  -v $(pwd):$(pwd) \
+  -w $(pwd)/build \
+  --name rpibuilder \
+  --privileged rpisdk:latest \
+  /bin/picotool load -v -x blinky-demo/blinky-demo.uf2
+
+# ------------------
+# Expected output:
+Loading into Flash: [==============================]  100%
+Verifying Flash:    [==============================]  100%
+  OK
+
+The device was rebooted to start the application.
+
+# ------------------
+# If the Pico is not correctly set in BOOTSEL when running this command
+# you instead get this:
+
+No accessible RP2040 devices in BOOTSEL mode were found.
+
+# ------------------
+# We have also seen cases of this happening.
+# Move on to "Flashing by moving UF2 to mass-storage device" instead.
+ERROR: Unable to access device to reboot it; Use sudo or setup a udev rule
+```
 
 #### Flashing by moving UF2 to mass-storage device
 
