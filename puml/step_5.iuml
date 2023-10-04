@@ -11,34 +11,50 @@ binary "TASK 4" as t4
 @0
 
 @2
-button is "TURN LEFT"
+t4@2 <-> @12 : {Periodicity 10}
+button is "HAZARD"
 button -> t4
-@10
 t4 is high
-t4 -> t1 : blink left
+t4 -> t1 : blink left on
 t1 is high
-t4 -> t2 : blink right
+t4 -> t2 : blink right on
 t2 is high
-t4 -> t3 : tick
+t4 -> t3 : Tick
 t3 is high
-@11 
+@3 
 t4 is low
-@12
+@4
 t1 is low
 t2 is low
 t3 is low
 
-@20
+@12
+t4@12 <-> @22 : {Periodicity 10}
 t4 is high
-t4 -> t1 : blink left
+t4 -> t1 : blink left off
 t1 is high
-t4 -> t2 : blink right
+t4 -> t2 : blink right off
 t2 is high
-t4 -> t3 : tick
+t4 -> t3 : Tock
 t3 is high
-@21 
+@13 
 t4 is low
+@14
+t1 is low
+t2 is low
+t3 is low
+
 @22
+t4 is high
+t4 -> t1 : blink left on
+t1 is high
+t4 -> t2 : blink right on
+t2 is high
+t4 -> t3 : Tick
+t3 is high
+@23 
+t4 is low
+@24
 t1 is low
 t2 is low
 t3 is low

@@ -1,0 +1,71 @@
+@startuml
+
+concise "Button Command" as button
+binary "TASK 1: LHS" as t1
+binary "TASK 2: RHS" as t2
+binary "TASK 3: TICK/TOCK" as t3
+binary "TASK 4: Timer" as t4
+binary "TASK 5: Brake" as t5
+hide time-axis
+@0
+
+@2
+t4@2 <-> @12 : {Periodicity 10}
+button is "HAZARD"
+button -> t4
+t4 is high
+t4 -> t1 : blink left on
+t1 is high
+t4 -> t2 : blink right on
+t2 is high
+t4 -> t3 : Tick
+t3 is high
+@3 
+t4 is low
+@4
+t3 is low
+@5
+t1 is low
+t2 is low
+
+@8
+highlight 8 to 18 #Gold : BRAKE, TURN REAR LIGHTS ON
+button is "BRAKE"
+t5 is high : Brake has higher prio
+t5 -> t1 : blink left off
+t5 -> t2  : blink right off
+t1 is high 
+t2 is high
+@9
+t1 is low
+t2 is low
+@12
+t4 -> t1
+t4 -> t2 
+t4 -> t3
+t4 is low : Blocked
+t3 is low : Blocked
+t1 is low : Blocked
+t2 is low : Blocked
+
+
+@18
+button is "HAZARD"
+t4@18 <-> @28 : {Periodicity 10}
+t5 is low
+t4 is high
+t4 -> t1 : blink left
+t1 is high
+t4 -> t2 : blink right
+t2 is high
+t4 -> t3 : Tick
+t3 is high
+@19 
+t4 is low
+@20
+t3 is low
+@21
+t1 is low
+t2 is low
+
+@enduml
