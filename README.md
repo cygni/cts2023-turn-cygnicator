@@ -170,9 +170,16 @@ It takes a couple of minutes to download all dependencies, this command should o
 
 ## How to build an image
 
-TODO how to build test blinky project
+```
+cd firmware
 
-TODO how to build real workshop workspace
+./build.sh
+
+# Expected output
+=== Output Files ===
+./firmware/build/turn-cygnicator/turn-cygnicator.uf2
+./firmware/build/blinky-demo/blinky-demo.uf2
+```
 
 ## How to flash an image to Pico
 
@@ -191,25 +198,30 @@ There are two alternatives to flash in this guide.
 
 Either use:
 - **picotool** provided in the docker image 
-- **move UF2 image manually** to mass-storage device.
+- **move UF2 image manually** to the mass-storage device.
 
 #### Flashing using picotool
 
-Run this command from firmware folder:
+For convenience, we have included a flash script that shortens the command that is needed to flash.
+Flash blinky sample code to verify that communication towards Pico works:
+```
+cd firmware
 
-`docker run --rm -v $(pwd):$(pwd) -w $(pwd)/build --name rpibuilder --privileged --user=root rpisdk:latest /bin/picotool load -f -v -x <path to uf2>`
-
-
-To verify that this flashing method works, flash the blinky image:
-
-`docker run --rm -v $(pwd):$(pwd) -w $(pwd)/build --name rpibuilder --privileged --user=root rpisdk:latest /bin/picotool load -f -v -x blinky-demo/blinky-demo.uf2`
+./flash.sh blinky-demo/blinky-demo.uf2
+```
 
 The expected results should look like this:
 
 ![alt text](img/pcb_blinky-demo.gif "Enter programming mode")
 
+..by default this command flashes `turn-cygnicator` workspace, which is where your implementation is located. **Refer to this flash instruction during the workshop:**
+```
+cd firmware
 
-**Troubleshooting:**
+./flash.sh
+```
+
+**Troubleshooting flash step:**
 ```
 # Command that you run
 $ docker run \
