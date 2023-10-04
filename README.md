@@ -126,10 +126,77 @@ In a normal car, when the hazard is on and the brake is issued, the hazard conti
 
 Prepare the workshop
 
+Now the actual workshop begins
+
 ## Preparation
 
 This section is where you prepare and set up your development environment.
 At the end of this section, you should be able to know where to add changes, and how to build and flash. To test the circuit board, we have provided a blinky code example that is going to be flashed onto the board.
+
+Important folders and files:
+```
+# Your workspace, feel free to add more workspaces if needed.
+firmware/turn-cygnicator
+
+# ..we suggest you work in the same workspace throughout the workshop
+# since every step builds on the previous one.
+
+# Main entrypoint to your solution
+firmware/turn-cygnicator/main.c
+
+# Binary image that will be flashed onto the Raspberry Pi Pico
+firmware/turn-cygnicator/turn-cygnicator.uf2
+
+# Cygni turnindicator (Cygnicator) APIs
+firmware/inc
+
+# FreeRTOS kernel, you shouldn't need to touch this
+firmware/lib/FreeRTOS-Kernel
+
+# FreeRTOS configuration file for this project, you shouldn't need to touch this
+firmware/inc/FreeRTOSConfig.h
+
+```
+
+## Prepare the development environment
+
+In other words, build the docker image `firmware/docker/Dockerfile` that contains the FreeRTOS kernel, pico SDK, picotool and other tools/libraries that are needed.
+
+Run this command in the root folder of this repository:
+`docker build --build-arg UID="$(id -u)" -t rpisdk:latest docker/` or run
+`build_docker.sh`
+
+It takes about 5 minutes to download all dependencies, this command should only be run once.
+
+## How to build an image
+
+TODO how to build test blinky project
+
+TODO how to build real workshop workspace
+
+## How to flash an image to Pico
+
+### Step 1: Enter programming mode
+
+Before flashing the image, the Pico needs to enter its programming mode.
+This is done by holding the BOOTSEL button (1/RED) and pressing the RESET button (2/BLUE) once while the BOOTSEL button is still held down.
+
+![alt text](img/pcb_flash_steps.png "Enter programming mode")
+
+Now the Pico should have entered programming mode, it should appear to your host computer as a mass-storage device, like a USB memory stick. If it doesn't, you need to redo step 1.
+
+### Step 2: Flash image
+
+There are two alternatives to flash.
+Either use picotool provided in the docker image or move UF2 image manually to mass-storage device.
+
+#### Flashing using picotool
+
+`docker run --rm -v $(pwd):/tmp/app_dir -w /tmp/app_dir --name rpibuilder --privileged rpisdk:latest /bin/picotool load -v -x turn-cygnicator/turn-cygnicator.uf2`
+
+#### Flashing by moving UF2 to mass-storage device
+
+TODO
 
 Important folders and files:
 ```bash
