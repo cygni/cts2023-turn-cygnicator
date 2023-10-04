@@ -1,5 +1,6 @@
 @startuml
 
+hide time-axis
 concise "Button Command" as button
 binary "TASK 1" as t1
 binary "TASK 2" as t2
