@@ -52,3 +52,5 @@ pioasm
 pico-sdk
 .cache
 build/
+
+.vscode
