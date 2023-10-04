@@ -3,9 +3,9 @@
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
-build-essential cmake gcc-arm-none-eabi libnewlib-arm-none-eabi \
-libstdc++-arm-none-eabi-newlib git ca-certificates make python3 \
-libusb-1.0-0-dev pkg-config clangd clang-format
+    build-essential cmake gcc-arm-none-eabi libnewlib-arm-none-eabi \
+    libstdc++-arm-none-eabi-newlib git ca-certificates make python3 \
+    libusb-1.0-0-dev pkg-config clangd clang-format picocom
 
 ARG UID=1000
 RUN useradd -m -u ${UID} -s /bin/bash builder
