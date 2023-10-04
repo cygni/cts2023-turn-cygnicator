@@ -1,0 +1,111 @@
+@startuml
+
+concise "Button Command" as button
+binary "TASK 1: FRONT LEFT, FL" as t1
+binary "TASK 2: REAR LEFT, RL" as t2
+binary "TASK 3: FRONT RIGHT, FR" as t3
+binary "TASK 4: REAR RIGHT, RR" as t4
+binary "TASK 5: TICK/TOCK" as t5
+binary "TASK 6: Timer" as t6
+binary "TASK 7: Brake" as t7
+hide time-axis
+@0
+
+@2
+t6@2 <-> @5 : {Periodicity 0.5s}
+button is "TURN LEFT"
+t6 is high
+t6 -> t1 : Turn FL on
+t1 is high
+t6 -> t2 : Turn RL on
+t2 is high
+t6 -> t5 : Tick
+t5 is high
+
+@3
+t5 is low
+t6 is low
+@4
+t1 is low
+t2 is low
+
+@5
+t6@5 <-> @8 : {Periodicity 0.5s}
+t6 is high
+t6 -> t1 : Turn FL off
+t1 is high
+t6 -> t2 : Turn RL off
+t2 is high
+t6 -> t5 : Tock
+t5 is high
+
+@6
+t5 is low
+t6 is low
+@7
+t1 is low
+t2 is low
+
+@8
+t6@8 <-> @10
+button is "TURN RIGHT"
+t6 is high
+t6 -> t3 : Turn FR on
+t3 is high
+t6 -> t4 : Turn RR on
+t4 is high
+t6 -> t5 : Tick
+t5 is high
+
+@9
+t5 is low
+t6 is low
+@10
+t3 is low
+t4 is low
+@10
+button is "HAZARD"
+t6@10 <-> @13 : {Periodicity 0.5s}
+t6 is high
+t6 -> t5 : Tick
+t5 is high
+t6 -> t1 : Turn FL on
+t1 is high
+t6 -> t2 : Turn RL on
+t2 is high
+t6 -> t3 : Turn FR on
+t3 is high
+t6 -> t4 : Turn RR on
+t4 is high
+@11
+t5 is low
+t6 is low
+@12
+t1 is low
+t2 is low
+t3 is low
+t4 is low
+
+@13
+t6@13 <-> @16 : {Periodicity 0.5s}
+t6 is high
+t6 -> t5 : Tock
+t5 is high
+t6 -> t1 : Turn FL off
+t1 is high
+t6 -> t2 : Turn RL off
+t2 is high
+t6 -> t3 : Turn FR off
+t3 is high
+t6 -> t4 : Turn RR off
+t4 is high
+
+@14
+t5 is low
+t6 is low
+@15
+t1 is low
+t2 is low
+t3 is low
+t4 is low
+@enduml
