@@ -2,7 +2,31 @@
 
 Hello and welcome to the CTS 2023 embedded trail. In this trail you will be introduced to basic real-time system concepts and how to utilize them in FreeRTOS, a real-time system core for embedded devices. With these concepts, you will finalize a mini version of a car's telltale: brake, hazard and turn indicators will all be implemented using light and sound that can be controlled from a circuit board.
 
-TODO add ToC
+- [Introduction](#introduction)
+  - [Raspberry Pi Pico](#raspberry-pi-pico)
+  - [The Circuit Board (PCB)](#the-circuit-board-pcb)
+    - [GPIO configuration table](#gpio-configuration-table)
+  - [Workshop goals](#workshop-goals)
+- [Workshop](#workshop)
+  - [Preparation](#preparation)
+  - [Prepare the development environment](#prepare-the-development-environment)
+  - [How to build an image](#how-to-build-an-image)
+  - [How to flash an image to Pico](#how-to-flash-an-image-to-pico)
+    - [Step 1: Enter programming mode](#step-1-enter-programming-mode)
+    - [Step 2: Flash image](#step-2-flash-image)
+      - [Flashing using picotool](#flashing-using-picotool)
+      - [Flashing by moving UF2 to mass-storage device](#flashing-by-moving-uf2-to-mass-storage-device)
+  - [Interrupt Handling](#interrupt-handling)
+  - [Step 1: Handle button commands](#step-1-handle-button-commands)
+    - [Task scheduling](#task-scheduling)
+  - [Step 2: TURN LEFT and TURN RIGHT](#step-2-turn-left-and-turn-right)
+    - [Syncing tasks](#syncing-tasks)
+  - [Step 3: Hazzard](#step-3-hazzard)
+  - [Step 4: Buzzer (TICK/TOCK sound)](#step-4-buzzer-ticktock-sound)
+  - [Step 5: Periodicity](#step-5-periodicity)
+    - [Handle shared resources](#handle-shared-resources)
+  - [Step 6: Break button](#step-6-break-button)
+  - [Step 7: One Task that controlls each LED row](#step-7-one-task-that-controlls-each-led-row)
 
 ## Raspberry Pi Pico
 
@@ -82,15 +106,89 @@ Simplification of the parameters:
 | Hazard | On press | All headlights headlights toggles at a fixed interval. Buzzer plays a tick sound for each flash. |
 | Brake | On hold | All headlights are on. |
 
-Fixed interval is XXXXX Hz!!! TODOO
+
+By fixed interval in the table above we mean it should be toggled at 1Hz. For the turn indicator, this would be according to the time diagram below. Note that we don't include tock sound. Cooler car brands do this. We don't know why:
+
+![alt text](puml/png/tick_tock.png "Tick tock PUML")
+
 Here is a gif of how the results will look like:
 !!!TODO ADD A GIF WITH REFERENCE SOLUTION!!!
 
+In a normal car, when the hazard is on and the brake is issued, the hazard continues after the brake has been released. In this workshop we do not require you to implement this behavior instead it's up to the designer how to handle this. You will see in the time diagrams later in the workshop that we suggest that you need to reissue the hazard after braking. The same goes for turn indicator.
+
 # Workshop
+
+Now the actual workshop begins
 
 ## Preparation
 
-Set up environment, build and flash test code provided by team task force
+This section is where you prepare and set up your development environment.
+At the end of this section, you should be able to know where to add changes, and how to build and flash. To test the circuit board, we have provided a blinky code example that is going to be flashed onto the board.
+
+Important folders and files:
+```
+# Your workspace, feel free to add more workspaces if needed.
+firmware/turn-cygnicator
+
+# ..we suggest you work in the same workspace throughout the workshop
+# since every step builds on the previous one.
+
+# Main entrypoint to your solution
+firmware/turn-cygnicator/main.c
+
+# Binary image that will be flashed onto the Raspberry Pi Pico
+firmware/turn-cygnicator/turn-cygnicator.uf2
+
+# Cygni turnindicator (Cygnicator) APIs
+firmware/inc
+
+# FreeRTOS kernel, you shouldn't need to touch this
+firmware/lib/FreeRTOS-Kernel
+
+# FreeRTOS configuration file for this project, you shouldn't need to touch this
+firmware/inc/FreeRTOSConfig.h
+
+```
+
+## Prepare the development environment
+
+In other words, build the docker image `firmware/docker/Dockerfile` that contains the FreeRTOS kernel, pico SDK, picotool and other tools/libraries that are needed.
+
+Run this command in the root folder of this repository:
+`docker build --build-arg UID="$(id -u)" -t rpisdk:latest docker/` or run
+`build_docker.sh`
+
+It takes about 5 minutes to download all dependencies, this command should only be run once.
+
+## How to build an image
+
+TODO how to build test blinky project
+
+TODO how to build real workshop workspace
+
+## How to flash an image to Pico
+
+### Step 1: Enter programming mode
+
+Before flashing the image, the Pico needs to enter its programming mode.
+This is done by holding the BOOTSEL button (1/RED) and pressing the RESET button (2/BLUE) once while the BOOTSEL button is still held down.
+
+![alt text](img/pcb_flash_steps.png "Enter programming mode")
+
+Now the Pico should have entered programming mode, it should appear to your host computer as a mass-storage device, like a USB memory stick. If it doesn't, you need to redo step 1.
+
+### Step 2: Flash image
+
+There are two alternatives to flash.
+Either use picotool provided in the docker image or move UF2 image manually to mass-storage device.
+
+#### Flashing using picotool
+
+`docker run --rm -v $(pwd):/tmp/app_dir -w /tmp/app_dir --name rpibuilder --privileged rpisdk:latest /bin/picotool load -v -x turn-cygnicator/turn-cygnicator.uf2`
+
+#### Flashing by moving UF2 to mass-storage device
+
+TODO
 
 ## Interrupt Handling
 
@@ -118,7 +216,7 @@ Introduce FreeRTOS API to how to create tasks and communicate between tasks e.g.
 ### Syncing tasks
 Introduce FreeRTOS API on how to sync between tasks
 
-<img src="./puml/png/step_2.png" alt="step_2" />
+![alt text](puml/png/step_2.png "Step 2 PUML")
 
 ## Step 3: Hazzard
 
@@ -126,20 +224,20 @@ Introduce FreeRTOS API on how to sync between tasks
 
 * When HAZZARD button is pressed both LHS and RHS should turn ON at the same time. When button is pressed again, both sides should turn OFF at the same time.
 
-<img src="./puml/png/step_3.png" alt="step_3" />
+![alt text](puml/png/step_3.png "Step 3 PUML")
 
 ## Step 4: Buzzer (TICK/TOCK sound)
 
 During a Turn indication there is a sound being played in the car to notify the driver. Some brands wants only a "Tick" when the LEDs goes from OFF -> ON and some wants both "Tick" and "Tock". Tick when LEDs goes from OFF -> ON and Tick when led goes from ON -> OFF.
 
-<img src="./puml/png/step_4.png" alt="step_4" />
+![alt text](puml/png/step_4.png "Step 4 PUML")
 
 **Expected results:**
 * During HAZZARD/TURN LEFT/TURN RIGHT commands there should be a Tick/Tock sound being played when the corresponding LEDs turns ON/OFF
 
 ## Step 5: Periodicity
 
-<img src="./puml/png/step_5.png" alt="step_5" />
+![alt text](puml/png/step_5.png "Step 5 PUML")
 
 Until this point the LEDs are able to turn ON/OFF with button commands. However in the car this feature is no.....
 
@@ -149,12 +247,12 @@ Introduce FreeRTOS API to handle shared resources: semaphores etc.
 **Expected results:**
 
 ## Step 6: Break button
-<img src="./puml/png/step_6.png" alt="step_6" />
+![alt text](puml/png/step_6.png "Step 6 PUML")
 
 **Expected results:**
 
 ## Step 7: One Task that controlls each LED row
-<img src="./puml/png/step_7.png" alt="step_7" />
+![alt text](puml/png/step_7.png "Step 7 PUML")
 T1 FRONT LEFT
 T2 REAR LEFT
 T3 FRONT RIGHT

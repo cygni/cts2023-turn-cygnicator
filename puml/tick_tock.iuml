@@ -1,0 +1,46 @@
+@startuml
+
+hide time-axis
+scale 100 as 200 pixels
+concise "Turn signal" as turn
+binary "Sound" as sound
+binary "Light" as light
+
+@0
+turn is {-}
+sound is LOW
+light is LOW
+
+@50
+@50 <-> @+100 : {1s}
+turn is "TICK"
+sound is HIGH
+light is HIGH
+
+@75
+sound is LOW
+
+@100
+turn is "TOCK"
+light is LOW
+
+@125
+light is LOW
+
+@150
+@150 <-> @+100 : {1s}
+turn is "TICK"
+sound is HIGH
+light is HIGH
+
+@175
+sound is LOW
+
+@200
+turn is "TOCK"
+light is LOW
+
+@250
+turn is {-}
+
+@enduml
