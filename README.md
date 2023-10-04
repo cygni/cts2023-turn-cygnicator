@@ -196,31 +196,25 @@ There are two alternatives to flash in this guide.
 
 Either use:
 - **picotool** provided in the docker image 
-- **move UF2 image manually** to the mass-storage device.
+- **move UF2 image manually** to mass-storage device.
 
 #### Flashing using picotool
 
-For convenience, we have included a flash script that shortens the command that is needed to flash.
-Flash blinky sample code to verify that communication towards Pico works:
-```bash
-cd firmware
+Run this command from firmware folder:
 
-./flash.sh blinky-demo/blinky-demo.uf2
-```
+`docker run --rm -v $(pwd):$(pwd) -w $(pwd)/build --name rpibuilder --privileged --user=root rpisdk:latest /bin/picotool load -f -v -x <path to uf2>`
+
+
+To verify that this flashing method works, flash the blinky image:
+
+`docker run --rm -v $(pwd):$(pwd) -w $(pwd)/build --name rpibuilder --privileged --user=root rpisdk:latest /bin/picotool load -f -v -x blinky-demo/blinky-demo.uf2`
 
 The expected results should look like this:
-
 ![alt text](img/pcb_blinky-demo.gif "Enter programming mode")
 
-..by default this command flashes `turn-cygnicator` workspace, which is where your implementation is located. **Refer to this flash instruction during the workshop:**
-```bash
-cd firmware
 
-./flash.sh
+**Troubleshooting:**
 ```
-
-**Troubleshooting flash step:**
-```bash
 # Command that you run
 $ docker run \
   --rm \
