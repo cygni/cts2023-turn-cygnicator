@@ -126,15 +126,13 @@ In a normal car, when the hazard is on and the brake is issued, the hazard conti
 
 Prepare the workshop
 
-Now the actual workshop begins
-
 ## Preparation
 
 This section is where you prepare and set up your development environment.
 At the end of this section, you should be able to know where to add changes, and how to build and flash. To test the circuit board, we have provided a blinky code example that is going to be flashed onto the board.
 
 Important folders and files:
-```
+```bash
 # Your workspace, feel free to add more workspaces if needed.
 firmware/turn-cygnicator
 
@@ -170,7 +168,7 @@ It takes a couple of minutes to download all dependencies, this command should o
 
 ## How to build an image
 
-```
+```bash
 cd firmware
 
 ./build.sh
@@ -204,7 +202,7 @@ Either use:
 
 For convenience, we have included a flash script that shortens the command that is needed to flash.
 Flash blinky sample code to verify that communication towards Pico works:
-```
+```bash
 cd firmware
 
 ./flash.sh blinky-demo/blinky-demo.uf2
@@ -215,14 +213,14 @@ The expected results should look like this:
 ![alt text](img/pcb_blinky-demo.gif "Enter programming mode")
 
 ..by default this command flashes `turn-cygnicator` workspace, which is where your implementation is located. **Refer to this flash instruction during the workshop:**
-```
+```bash
 cd firmware
 
 ./flash.sh
 ```
 
 **Troubleshooting flash step:**
-```
+```bash
 # Command that you run
 $ docker run \
   --rm \
