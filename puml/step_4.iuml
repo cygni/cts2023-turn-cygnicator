@@ -6,6 +6,7 @@ binary "TASK 1" as t1
 binary "TASK 2" as t2
 binary "TASK 3" as t3
 
+
 @0
 t1 is IDLE
 t2 is IDLE
