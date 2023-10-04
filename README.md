@@ -197,6 +197,7 @@ To verify that this flashing method works, flash the blinky image:
 `docker run --rm -v $(pwd):$(pwd) -w $(pwd)/build --name rpibuilder --privileged --user=root rpisdk:latest /bin/picotool load -f -v -x blinky-demo/blinky-demo.uf2`
 
 The expected results should look like this:
+
 ![alt text](img/pcb_blinky-demo.gif "Enter programming mode")
 
 
