@@ -149,11 +149,12 @@ Introduce FreeRTOS API to handle shared resources: semaphores etc.
 **Expected results:**
 
 ## Step 6: Break button
+<img src="./puml/png/step_6.png" alt="step_6" />
 
 **Expected results:**
 
 ## Step 7: One Task that controlls each LED row
-
+<img src="./puml/png/step_7.png" alt="step_7" />
 T1 FRONT LEFT
 T2 REAR LEFT
 T3 FRONT RIGHT
