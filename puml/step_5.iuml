@@ -1,10 +1,13 @@
 @startuml
 
+hide time-axis
 concise "Button Command" as button
 binary "TASK 1" as t1
 binary "TASK 2" as t2
 binary "TASK 3" as t3
 binary "TASK 4" as t4
+
+
 @0
 
 @2
