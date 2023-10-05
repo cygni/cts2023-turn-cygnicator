@@ -1,8 +1,6 @@
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
-#include <stdbool.h>
-
-void *start_simulator(void *arg);
+void start_simulator();
 
 #endif // SIMULATOR_H
