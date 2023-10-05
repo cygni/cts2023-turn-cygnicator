@@ -268,7 +268,7 @@ TODO Introduce pico SDK calls to configure interrupt handling and callbacks on b
 TODO Introduce our API for how to turn on LED rows
 ### FreeRTOS Task API
 
-A real time application that uses an RTOS can be structured as a set of independent tasks. Each task executes within its own context with no coincidental dependency on other tasks within the system or the RTOS scheduler itself. Only one task within the application can be executing at any point in time and the real time RTOS scheduler is responsible for deciding which task this should be. The RTOS scheduler may therefore repeatedly start and stop each task (swap each task in and out) as the application executes. As a task has no knowledge of the RTOS scheduler activity it is the responsibility of the real time RTOS scheduler to ensure that the processor context (register values, stack contents, etc) when a task is swapped in is exactly that as when the same task was swapped out. To achieve this each task is provided with its own stack. When the task is swapped out the execution context is saved to the stack of that task so it can also be exactly restored when the same task is later swapped back in. 
+A real-time application that uses an RTOS can be structured as a set of independent tasks. Each task executes within its own context with no coincidental dependency on other tasks within the system or the RTOS scheduler itself. Only one task within the application can be executing at any point in time and the real-time RTOS scheduler is responsible for deciding which task this should be. The RTOS scheduler may therefore repeatedly start and stop each task (swap each task in and out) as the application executes. As a task has no knowledge of the RTOS scheduler activity it is the responsibility of the real-time RTOS scheduler to ensure that the processor context (register values, stack contents, etc) when a task is swapped in is exactly that as when the same task was swapped out. To achieve this each task is provided with its own stack. When the task is swapped out the execution context is saved to the stack of that task so it can also be exactly restored when the same task is later swapped back in. 
 
 
 This is a simplified task state diagram, containing only the states that we care about in this workshop:
@@ -328,7 +328,25 @@ static void vTaskCode(void *parameters) {
 
 #### vTaskDelay()
 
-TODO
+Delay a task for a given number of ticks. The actual time that the task remains blocked depends on the tick rate.
+
+The function pdMS_TO_TICKS() can be used to calculate milliseconds to ticks using the tick rate with the resolution of one tick period.
+
+Example:
+
+```cpp
+void vTaskFunction( void * pvParameters )
+ {
+    for( ;; )
+    {
+        /* Simply toggle the LED every 500ms, blocking between each toggle. */
+        vToggleLED();
+
+        // Block for 500ms
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
+```
 
 
 ## Step 1: Handle button commands
