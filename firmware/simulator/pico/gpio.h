@@ -6,10 +6,6 @@
 #include "stdbool.h"
 #include "stdint.h"
 #include "stdio.h"
-#include <pthread.h>
-
-// Pico have 26 GPIOs in total
-bool gpio_map[26] = { 0 };
 
 enum gpio_function {
   GPIO_FUNC_XIP = 0,
@@ -27,9 +23,7 @@ enum gpio_function {
 
 void gpio_init(uint gpio) {
   (void)gpio;
-
-  pthread_t cThread;
-  pthread_create(&cThread, NULL, start_simulator, gpio_map);
+  start_simulator();
 }
 void stdio_init_all(){};
 

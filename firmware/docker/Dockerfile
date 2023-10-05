@@ -11,6 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # for simulator
 RUN apt-get install -y --no-install-recommends libncurses5-dev
 
+# for simulator
+RUN apt-get install -y --no-install-recommends libncurses5-dev
+
 ARG UID=1000
 RUN useradd -m -u ${UID} -s /bin/bash builder
 
