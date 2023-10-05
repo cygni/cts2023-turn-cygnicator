@@ -12,6 +12,7 @@ function(pico_sdk_import)
 endfunction()
 
 function(pico_sdk_init)
+message(STATUS ">> Using super-duper-pico-emulator <<")
 endfunction()
 
 function(pico_add_extra_outputs)
@@ -60,4 +61,8 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/simulator
         /tmp/FreeRTOS-Kernel/include
         /tmp/FreeRTOS-Kernel/portable/ThirdParty/GCC/Posix
+)
+
+link_libraries(
+    ${CMAKE_THREAD_LIBS_INIT}
 )
