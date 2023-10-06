@@ -9,7 +9,6 @@
 
 #include <climits>
 
-#include "cygnicator_gpio.h"
 #include "cygnicator_headlights.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
@@ -104,8 +103,8 @@ int main(void) {
   gpio_set_dir_out_masked(gpio_output_pins_mask);
   gpio_set_dir_in_masked(gpio_input_pins_mask);
 
-  gpio_set_function(gpio_speaker, GPIO_FUNC_PWM);
-  uint8_t const slice_num = pwm_gpio_to_slice_num(gpio_speaker);
+  gpio_set_function(gpio_buzzer_map[BUZZER_FRONT], GPIO_FUNC_PWM);
+  uint8_t const slice_num = pwm_gpio_to_slice_num(gpio_buzzer_map[BUZZER_FRONT]);
   pwm_set_enabled(slice_num, true);
 
   // say hello, so we know the program is running

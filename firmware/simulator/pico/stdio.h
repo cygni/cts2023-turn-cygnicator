@@ -5,6 +5,7 @@
 #include <semphr.h>
 #include <task.h>
 
+#include "gpio.h"
 #include "simulator.h"
 
 void stdio_init_all() {

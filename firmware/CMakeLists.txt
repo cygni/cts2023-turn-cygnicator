@@ -15,6 +15,6 @@ include_directories(
 
 #add_subdirectory(blinky-demo)
 add_subdirectory(turn-cygnicator-reference)
-#add_subdirectory(turn-cygnicator-kalle)
-#add_subdirectory(turn-cygnicator-hampus)
+add_subdirectory(turn-cygnicator-kalle)
+add_subdirectory(turn-cygnicator-hampus)
 #add_subdirectory(turn-cygnicator-rasmus)

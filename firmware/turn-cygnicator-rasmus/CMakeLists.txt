@@ -3,7 +3,7 @@ project(turn-cygnicator-rasmus C CXX ASM)
 pico_sdk_init()
 
 add_executable(${PROJECT_NAME}
-        main.cpp
+        main.c
 )
 
 target_link_libraries(${PROJECT_NAME}

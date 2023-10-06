@@ -5,9 +5,8 @@
 #include <stdio.h>
 #include <task.h>
 
-#include <climits>
+#include <limits.h>
 
-#include "cygnicator_gpio.h"
 #include "cygnicator_headlights.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
@@ -94,12 +93,12 @@ void inter_test(uint gpio, uint32_t events) {
 };
 
 void play_tone(int wrap, int level) {
-  const uint slice_num = pwm_gpio_to_slice_num(gpio_speaker);
+  const uint slice_num = pwm_gpio_to_slice_num(gpio_buzzer_map[BUZZER_FRONT]);
   pwm_set_wrap(slice_num, wrap);
-  pwm_set_gpio_level(gpio_speaker, level);
+  pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], level);
 };
 
-void stop_tone() { pwm_set_gpio_level(gpio_speaker, 0); }
+void stop_tone() { pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], 0); }
 
 void tick_tock_player_task(void *pvParameters) {
     (void*) pvParameters;
@@ -129,7 +128,7 @@ void tick_tock_player_task(void *pvParameters) {
 
 void left_rear_led_task(void *pvParameters ) {
     uint8_t* const gpios_p =  (uint8_t *) pvParameters;
-    bMessage recevied_payload {0};
+    bMessage recevied_payload = {0};
     bool is_led_on = false;
     for (;;) {
         //printf ("waiting for receive left_rear_led_task \n");
@@ -286,8 +285,8 @@ int init() {
     gpio_init_mask(gpio_input_pins_mask);
     gpio_set_dir_in_masked(gpio_input_pins_mask);
     gpio_set_dir_out_masked(gpio_output_pins_mask);
-    gpio_set_function(gpio_speaker, GPIO_FUNC_PWM);
-    uint8_t const slice_num = pwm_gpio_to_slice_num(gpio_speaker);
+    gpio_set_function(gpio_buzzer_map[BUZZER_FRONT], GPIO_FUNC_PWM);
+    uint8_t const slice_num = pwm_gpio_to_slice_num(gpio_buzzer_map[BUZZER_FRONT]);
     pwm_set_enabled(slice_num, true);
     gpio_pull_up(gpio_btn_left_indicator);
     gpio_pull_up(gpio_btn_right_indicator);
@@ -345,7 +344,7 @@ int main() {
             left_rear_led_task,
             "left_rear_led_task_rx",
             configMINIMAL_STACK_SIZE,
-            (void*) &gpios_light_rear_left,
+            (void*) &gpio_headlight_map[REAR_LEFT],
             mainQUEUE_RECEIVE_TASK_PRIORITY,
             &rear_left_handle
         );
@@ -353,7 +352,7 @@ int main() {
             left_front_led_task,
             "left_front_led_task_rx",
             configMINIMAL_STACK_SIZE,
-            (void*) &gpios_light_front_left,
+            (void*) &gpio_headlight_map[FRONT_LEFT],
             mainQUEUE_RECEIVE_TASK_PRIORITY,
             &front_left_handle
         );
@@ -362,7 +361,7 @@ int main() {
             right_rear_led_task,
             "right_rear_led_task_rx",
             configMINIMAL_STACK_SIZE,
-            (void*) &gpios_light_rear_right,
+            (void*) &gpio_headlight_map[REAR_RIGHT],
             mainQUEUE_RECEIVE_TASK_PRIORITY,
             &rear_right_handle
         );
@@ -370,7 +369,7 @@ int main() {
             right_front_led_task,
             "right_front_led_task_rx",
             configMINIMAL_STACK_SIZE,
-            (void*) &gpios_light_front_right,
+            (void*) &gpio_headlight_map[FRONT_RIGHT],
             mainQUEUE_RECEIVE_TASK_PRIORITY,
             &front_right_handle
         );
