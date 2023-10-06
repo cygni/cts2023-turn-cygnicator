@@ -8,7 +8,8 @@
 #include "stdio.h"
 #include <pthread.h>
 
-bool gpio_map[16] = { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
+// Pico have 26 GPIOs in total
+bool gpio_map[26] = { false };
 
 enum gpio_function {
   GPIO_FUNC_XIP = 0,
