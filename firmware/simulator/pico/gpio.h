@@ -7,6 +7,12 @@
 #include "stdint.h"
 #include "stdio.h"
 
+// Pico have 26 GPIOs in total
+#define NUM_OF_PINS 26
+
+static simulator_params_t gpio_map[NUM_OF_PINS] = { 0 };
+
+
 enum gpio_function {
   GPIO_FUNC_XIP = 0,
   GPIO_FUNC_SPI = 1,
@@ -23,7 +29,8 @@ enum gpio_function {
 
 void gpio_init(uint gpio) {
   (void)gpio;
-  start_simulator();
+
+  xTaskCreate(start_simulator, "simulator", configMINIMAL_STACK_SIZE, (void *)&gpio_map, 1, NULL);
 }
 void stdio_init_all(){};
 
@@ -45,7 +52,7 @@ void gpio_init_mask(uint gpio_mask) { (void)gpio_mask; }
 
 static bool gpio_get(uint gpio) { return true; }
 static void gpio_put(uint gpio, bool value) {
-  gpio_map[gpio] = value;
+  gpio_map[gpio].gpio_value = value;
 }
 
 static void gpio_pull_up(uint gpio) { (void)gpio; }
@@ -54,5 +61,13 @@ void gpio_set_function(uint gpio, enum gpio_function fn) {
   (void)gpio;
   (void)fn;
 }
+
+static void gpio_set_irq_enabled_with_callback (uint gpio, 
+uint32_t event_mask, 
+bool enabled, 
+gpio_irq_callback_t callback) {
+  gpio_map[gpio].interrupt_callback = callback;
+}
+
 
 #endif

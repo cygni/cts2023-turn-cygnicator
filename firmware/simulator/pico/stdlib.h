@@ -6,8 +6,6 @@
 #define PICO_DEFAULT_LED_PIN 0
 #define GPIO_OUT 0
 
-typedef unsigned int uint;
-
 #include <stdio.h>
 
 #endif // PICO_STDLIB_H
