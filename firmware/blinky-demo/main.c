@@ -3,7 +3,6 @@
 #include <semphr.h>
 #include <task.h>
 
-#include "simulator.h"
 #include "pico/gpio.h"
 #include "pico/stdlib.h"
 
