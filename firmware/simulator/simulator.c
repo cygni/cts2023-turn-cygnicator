@@ -13,7 +13,7 @@
 #define HEIGHT 500
 
 #define CAR_BYTE_SIZE 2048 * 2
-#define LOGO_BYTE_SIZE 2048 * 2
+#define LOGO_BYTE_SIZE 2048 * 3
 
 void start_simulator(void *arg) {
   simulator_params_t *gpio_map = (simulator_params_t *)arg;
@@ -136,6 +136,7 @@ void start_simulator(void *arg) {
       case INTRO_LOGO:
       //wclear(menu_win);
       mvwaddwstr(menu_win, 0, 0, cygni_logo);
+      waddnwstr(menu_win, L"[Press 's' to Start", -1);
       
       break;
 
