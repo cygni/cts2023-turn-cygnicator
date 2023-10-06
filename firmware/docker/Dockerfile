@@ -5,7 +5,8 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential cmake gcc-arm-none-eabi libnewlib-arm-none-eabi \
     libstdc++-arm-none-eabi-newlib git ca-certificates make python3 \
-    libusb-1.0-0-dev pkg-config clangd clang-format picocom
+    libusb-1.0-0-dev pkg-config clangd clang-format picocom libncurses5-dev \
+    libncursesw5-dev
 
 # for simulator
 RUN apt-get install -y --no-install-recommends libncurses5-dev
