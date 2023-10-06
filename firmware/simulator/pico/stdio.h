@@ -1,9 +1,15 @@
 #ifndef PICO_STDIO_H
 #define PICO_STDIO_H
 
+#include <FreeRTOS.h>
+#include <semphr.h>
+#include <task.h>
+
+#include "simulator.h"
+
 void stdio_init_all() {
-  pthread_t cThread;
-  pthread_create(&cThread, NULL, start_simulator, gpio_map);
-};
+  xTaskCreate(start_simulator, "blinky-demo", configMINIMAL_STACK_SIZE,
+              gpio_map, 0, NULL);
+}
 
 #endif // PICO_STDIO_H
