@@ -56,4 +56,6 @@ int sim_printf (__const char *__restrict __format, ...);
 
 #define printf sim_printf
 
+#define printf(...) ;
+
 #endif // SIMULATOR_H
