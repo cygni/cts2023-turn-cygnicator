@@ -54,3 +54,4 @@ pico-sdk
 build/
 
 .vscode
+*.out
