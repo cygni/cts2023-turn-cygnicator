@@ -15,7 +15,5 @@ target_link_libraries(${PROJECT_NAME}
         hardware_clocks
         FreeRTOS-Kernel-Heap4)
 
-target_include_directories(${PROJECT_NAME} PRIVATE ../inc)
-
 pico_add_extra_outputs(${PROJECT_NAME})
 

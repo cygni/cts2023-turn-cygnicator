@@ -10,8 +10,7 @@
 // Pico have 26 GPIOs in total
 #define NUM_OF_PINS 26
 
-static simulator_params_t gpio_map[NUM_OF_PINS] = { 0 };
-
+static simulator_params_t gpio_map[NUM_OF_PINS] = {0};
 
 enum gpio_function {
   GPIO_FUNC_XIP = 0,
@@ -27,12 +26,14 @@ enum gpio_function {
   GPIO_FUNC_NULL = 0x1f,
 };
 
-void gpio_init(uint gpio) {
-  (void)gpio;
+enum gpio_irq_level {
+  GPIO_IRQ_LEVEL_LOW = 0x1u,
+  GPIO_IRQ_LEVEL_HIGH = 0x2u,
+  GPIO_IRQ_EDGE_FALL = 0x4u,
+  GPIO_IRQ_EDGE_RISE = 0x8u
+};
 
-  xTaskCreate(start_simulator, "simulator", configMINIMAL_STACK_SIZE, (void *)&gpio_map, 1, NULL);
-}
-void stdio_init_all(){};
+void gpio_init(uint gpio) { (void)gpio; }
 
 static void gpio_set_dir_in_masked(uint32_t mask) { (void)mask; };
 static void gpio_set_dir_out_masked(uint32_t mask) { (void)mask; };
@@ -50,7 +51,7 @@ static void gpio_set_dir(uint gpio, bool out) {
 
 void gpio_init_mask(uint gpio_mask) { (void)gpio_mask; }
 
-static bool gpio_get(uint gpio) { return true; }
+static bool gpio_get(uint gpio) { return gpio_map[gpio].gpio_value; }
 static void gpio_put(uint gpio, bool value) {
   gpio_map[gpio].gpio_value = value;
 }
@@ -62,12 +63,17 @@ void gpio_set_function(uint gpio, enum gpio_function fn) {
   (void)fn;
 }
 
-static void gpio_set_irq_enabled_with_callback (uint gpio, 
-uint32_t event_mask, 
-bool enabled, 
-gpio_irq_callback_t callback) {
+static void gpio_set_irq_enabled_with_callback(uint gpio, uint32_t event_mask,
+                                               bool enabled,
+                                               gpio_irq_callback_t callback) {
+  (void)event_mask;
+  (void)enabled;
+  (void)callback;
   gpio_map[gpio].interrupt_callback = callback;
 }
 
+static void gpio_set_mask(uint32_t mask) { (void)mask; }
+
+static void gpio_clr_mask(uint32_t mask) { (void)mask; }
 
 #endif
