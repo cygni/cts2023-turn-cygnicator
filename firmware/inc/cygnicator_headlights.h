@@ -24,21 +24,24 @@ typedef enum {
   BUTTON_SIZE_LIMIT
 } gpio_button_index_t;
 
-static uint8_t const gpio_headlight_map[HEADLIGHT_SIZE_LIMIT][HEADLIGHT_SIZE_LIMIT] = {
-    [FRONT_LEFT] = {2, 3, 4, 5},
-    [FRONT_RIGHT] = {6, 7, 8, 9},
-    [REAR_LEFT] = {10, 11, 12, 13},
-    [REAR_RIGHT] = {19, 18, 17, 16},
+static uint8_t const gpio_headlight_map[HEADLIGHT_SIZE_LIMIT]
+                                       [HEADLIGHT_SIZE_LIMIT] = {
+                                           [FRONT_LEFT] = {2, 3, 4, 5},
+                                           [FRONT_RIGHT] = {6, 7, 8, 9},
+                                           [REAR_LEFT] = {10, 11, 12, 13},
+                                           [REAR_RIGHT] = {19, 18, 17, 16},
 };
 
 static int8_t const gpio_buzzer_map[BUZZER_SIZE_LIMIT] = {
     [BUZZER_FRONT] = 22,
 };
 
-static uint8_t const gpio_btn_left_indicator = 14;
-static uint8_t const gpio_btn_right_indicator = 15;
-static uint8_t const gpio_btn_brake = 20;
-static uint8_t const gpio_btn_hazard = 21;
+enum gpio_buttons {
+  gpio_btn_left_indicator = 14,
+  gpio_btn_right_indicator = 15,
+  gpio_btn_brake = 20,
+  gpio_btn_hazard = 21
+};
 
 static uint8_t const gpio_button_map[BUTTON_SIZE_LIMIT] = {
     [BUTTON_LEFT_INDICATOR] = gpio_btn_left_indicator,
