@@ -6,7 +6,7 @@ add_executable(${PROJECT_NAME}
         main.c
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror -Wall -Wextra")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
 
 target_link_libraries(${PROJECT_NAME}
         pico_stdlib
@@ -14,8 +14,6 @@ target_link_libraries(${PROJECT_NAME}
         hardware_pwm
         hardware_clocks
         FreeRTOS-Kernel-Heap4)
-
-target_include_directories(${PROJECT_NAME} PRIVATE ../inc)
 
 pico_add_extra_outputs(${PROJECT_NAME})
 
