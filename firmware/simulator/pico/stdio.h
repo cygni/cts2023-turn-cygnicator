@@ -4,8 +4,8 @@
 #include <FreeRTOS.h>
 #include <semphr.h>
 #include <task.h>
+#include <hardware/gpio.h>
 
-#include "gpio.h"
 #include "simulator.h"
 
 void stdio_init_all() {

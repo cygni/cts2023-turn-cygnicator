@@ -147,7 +147,7 @@ int main(void) {
                       .thisTasksSyncBit = FRONT_RIGHT_SYNC_BIT,
                       .allSyncBits = RIGHT_SYNC_BITS},
       .onTurnLeft = {.action = HeadlightRowAction::NOP},
-      FRONT_RIGHT,
+      .headlightRow = FRONT_RIGHT,
   };
   HeadlightTaskParameters paramsFrontLeft = {
       .onHazard = {.action = HeadlightRowAction::SIMULTANEOUSLY,
@@ -161,7 +161,7 @@ int main(void) {
                      .eventGroupHandle = onTurnLeftEventGroup,
                      .thisTasksSyncBit = FRONT_LEFT_SYNC_BIT,
                      .allSyncBits = LEFT_SYNC_BITS},
-      FRONT_LEFT,
+      .headlightRow = FRONT_LEFT,
   };
   HeadlightTaskParameters paramsRearRight = {
       .onHazard = {.action = HeadlightRowAction::SIMULTANEOUSLY,
@@ -177,7 +177,7 @@ int main(void) {
                       .thisTasksSyncBit = REAR_RIGHT_SYNC_BIT,
                       .allSyncBits = RIGHT_SYNC_BITS},
       .onTurnLeft = {.action = HeadlightRowAction::NOP},
-      REAR_RIGHT,
+      .headlightRow = REAR_RIGHT,
   };
   HeadlightTaskParameters paramsRearLeft = {
       .onHazard = {.action = HeadlightRowAction::SIMULTANEOUSLY,
@@ -193,7 +193,7 @@ int main(void) {
                      .eventGroupHandle = onTurnLeftEventGroup,
                      .thisTasksSyncBit = REAR_LEFT_SYNC_BIT,
                      .allSyncBits = LEFT_SYNC_BITS},
-      REAR_LEFT,
+      .headlightRow = REAR_LEFT,
   };
   ButtonTaskParameters paramsButton = {
       .onHazard = {HAZARD_BTN, TellTaleCmd::Hazard},

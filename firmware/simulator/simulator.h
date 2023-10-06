@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
+#include <wchar.h>
 
 typedef unsigned int uint;
 
@@ -32,13 +32,15 @@ typedef enum {
 } simulator_option_t;
 
 static char const option_map[SIM_OPTION_LIMIT] = {
+    [SIM_NONE] = '\0',
     [SIM_BRAKE] = 'b',
     [SIM_HAZARD] = 'h',
     [SIM_LEFT] = 'l',
     [SIM_RIGHT] = 'r',
 };
 
-static wstring const option_list[SIM_OPTION_LIMIT] = {
+const static wchar_t *option_list[SIM_OPTION_LIMIT] = {
+    [SIM_NONE] = L"",
     [SIM_BRAKE] = L"[b]rake",
     [SIM_HAZARD] = L"[h]azard",
     [SIM_LEFT] = L"[l]eft",
@@ -46,8 +48,8 @@ static wstring const option_list[SIM_OPTION_LIMIT] = {
     [SIM_EXIT] = L"[q]uit",
 };
 
-void *start_simulator(void *arg);
+void start_simulator(void *arg);
 
-#define printf(...) ;
+#define printf(...)
 
 #endif // SIMULATOR_H
