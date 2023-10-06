@@ -6,6 +6,7 @@
 #include "stdbool.h"
 #include "stdint.h"
 #include "stdio.h"
+#include <pthread.h>
 
 // Pico have 26 GPIOs in total
 #define NUM_OF_PINS 26
