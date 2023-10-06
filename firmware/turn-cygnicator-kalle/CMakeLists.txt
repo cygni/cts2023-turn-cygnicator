@@ -9,6 +9,8 @@ add_executable(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/led.cpp
 )
 
+target_compile_options(${PROJECT_NAME} PRIVATE -fpermissive)
+
 target_link_libraries(${PROJECT_NAME}
         pico_stdlib
         pico_stdio_usb

@@ -33,6 +33,9 @@ enum gpio_irq_level {
   GPIO_IRQ_EDGE_RISE = 0x8u
 };
 
+#define GPIO_OUT 1
+#define GPIO_IN 0
+
 void gpio_init(uint gpio) { (void)gpio; }
 
 static void gpio_set_dir_in_masked(uint32_t mask) { (void)mask; };

@@ -7,7 +7,7 @@
 #include "pico/types.h"
 #include <FreeRTOS.h>
 
-#include "cygnicator_gpio.h"
+#include "cygnicator_headlights.h"
 #include "portmacro.h"
 #include <semphr.h>
 #include <stdint.h>
@@ -37,16 +37,16 @@ static TimerHandle_t stop_pwm_timer;
 
 void play_pwm(TimerHandle_t xTimer) {
   (void)xTimer;
-  const uint slice_num = pwm_gpio_to_slice_num(gpio_speaker);
+  const uint slice_num = pwm_gpio_to_slice_num(gpio_buzzer_map[BUZZER_FRONT]);
   pwm_set_wrap(slice_num, 32768);
-  pwm_set_gpio_level(gpio_speaker, 8192);
+  pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], 8192);
 
   xTimerStart(stop_pwm_timer, 0);
 }
 
 void stop_pwm(TimerHandle_t xTimer) {
   (void)xTimer;
-  pwm_set_gpio_level(gpio_speaker, 0);
+  pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], 0);
 }
 
 static void led_task(void *parameters) {
@@ -61,12 +61,12 @@ static void led_task(void *parameters) {
         uint8_t pin_rear;
         if (params->direction == right) {
           uint8_t const index = 4 - i;
-          pin_front = gpios_light_front_right[index];
-          pin_rear = gpios_light_rear_right[index];
+          pin_front = gpio_headlight_map[FRONT_RIGHT][index];
+          pin_rear = gpio_headlight_map[REAR_RIGHT][index];
         } else {
           uint8_t const index = i;
-          pin_front = gpios_light_front_left[index];
-          pin_rear = gpios_light_rear_left[index];
+          pin_front = gpio_headlight_map[FRONT_LEFT][index];
+          pin_rear = gpio_headlight_map[REAR_LEFT][index];
         }
 
         gpio_put(pin_front, true);
@@ -125,10 +125,10 @@ static void button_poll_task(void *parameters) {
           vTaskSuspend(params->right_led_task);
 
           for (uint8_t i = 0; i < 4; i++) {
-            gpio_put(gpios_light_front_left[i], false);
-            gpio_put(gpios_light_front_right[i], false);
-            gpio_put(gpios_light_rear_left[i], true);
-            gpio_put(gpios_light_rear_right[i], true);
+            gpio_put(gpio_headlight_map[FRONT_LEFT][i], false);
+            gpio_put(gpio_headlight_map[FRONT_RIGHT][i], false);
+            gpio_put(gpio_headlight_map[REAR_LEFT][i], true);
+            gpio_put(gpio_headlight_map[REAR_RIGHT][i], true);
           }
 
           brake_engaged = true;
@@ -136,10 +136,10 @@ static void button_poll_task(void *parameters) {
         } else {
 
           for (uint8_t i = 0; i < 4; i++) {
-            gpio_put(gpios_light_front_left[i], false);
-            gpio_put(gpios_light_front_right[i], false);
-            gpio_put(gpios_light_rear_left[i], false);
-            gpio_put(gpios_light_rear_right[i], false);
+            gpio_put(gpio_headlight_map[FRONT_LEFT][i], false);
+            gpio_put(gpio_headlight_map[FRONT_RIGHT][i], false);
+            gpio_put(gpio_headlight_map[REAR_LEFT][i], false);
+            gpio_put(gpio_headlight_map[REAR_RIGHT][i], false);
           }
 
           vTaskResume(params->left_led_task);
@@ -188,8 +188,8 @@ static void init_pico(void) {
   gpio_set_dir_out_masked(gpio_output_pins_mask);
   gpio_set_dir_in_masked(gpio_input_pins_mask);
 
-  gpio_set_function(gpio_speaker, GPIO_FUNC_PWM);
-  uint8_t const slice_num = pwm_gpio_to_slice_num(gpio_speaker);
+  gpio_set_function(gpio_buzzer_map[BUZZER_FRONT], GPIO_FUNC_PWM);
+  uint8_t const slice_num = pwm_gpio_to_slice_num(gpio_buzzer_map[BUZZER_FRONT]);
   pwm_set_enabled(slice_num, true);
 
   // say hello, so we know the program is running

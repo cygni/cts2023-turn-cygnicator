@@ -6,8 +6,10 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/simulator.cmake)
 
 project(turn-cygnicator C CXX ASM)
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
 
 include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/inc
