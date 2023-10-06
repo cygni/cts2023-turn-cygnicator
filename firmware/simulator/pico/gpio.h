@@ -9,7 +9,7 @@
 #include <pthread.h>
 
 // Pico have 26 GPIOs in total
-bool gpio_map[26] = { false };
+bool gpio_map[26] = { 0 };
 
 enum gpio_function {
   GPIO_FUNC_XIP = 0,
@@ -29,7 +29,7 @@ void gpio_init(uint gpio) {
   (void)gpio;
 
   pthread_t cThread;
-  pthread_create(&cThread, NULL, start_simulator, &gpio_map);
+  pthread_create(&cThread, NULL, start_simulator, gpio_map);
 }
 void stdio_init_all(){};
 
@@ -51,7 +51,6 @@ void gpio_init_mask(uint gpio_mask) { (void)gpio_mask; }
 
 static bool gpio_get(uint gpio) { return true; }
 static void gpio_put(uint gpio, bool value) {
-  // TODO remap this to something more reliable
   gpio_map[gpio] = value;
 }
 
