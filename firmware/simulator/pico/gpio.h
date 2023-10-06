@@ -6,6 +6,7 @@
 #include "stdbool.h"
 #include "stdint.h"
 #include "stdio.h"
+#include <pthread.h>
 
 bool gpio_map[16] = { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
 
@@ -26,7 +27,8 @@ enum gpio_function {
 void gpio_init(uint gpio) {
   (void)gpio;
 
-  xTaskCreate(start_simulator, "simulator", configMINIMAL_STACK_SIZE, (void *)&gpio_map, 1, NULL);
+  pthread_t cThread;
+  pthread_create(&cThread, NULL, start_simulator, &gpio_map);
 }
 void stdio_init_all(){};
 
