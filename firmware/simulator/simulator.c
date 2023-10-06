@@ -2,9 +2,9 @@
 #include <ncursesw/ncurses.h>
 #include <wchar.h>
 
-void start_simulator(void *params) {
+void *start_simulator(void *arg) {
 
-  bool **gpio_map = (bool **)params;
+  bool **gpio_map = (bool **)arg;
   wchar_t car[2048 * 2];
 
   for (;;) {
