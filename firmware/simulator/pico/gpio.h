@@ -7,6 +7,8 @@
 #include "stdint.h"
 #include "stdio.h"
 
+bool gpio_map[16] = { false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
+
 enum gpio_function {
   GPIO_FUNC_XIP = 0,
   GPIO_FUNC_SPI = 1,
@@ -23,7 +25,8 @@ enum gpio_function {
 
 void gpio_init(uint gpio) {
   (void)gpio;
-  start_simulator();
+
+  xTaskCreate(start_simulator, "simulator", configMINIMAL_STACK_SIZE, (void *)&gpio_map, 1, NULL);
 }
 void stdio_init_all(){};
 
