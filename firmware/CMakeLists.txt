@@ -8,6 +8,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_subdirectory(blinky-demo)
 add_subdirectory(turn-cygnicator)
 add_subdirectory(turn-cygnicator-kalle)
 add_subdirectory(turn-cygnicator-hampus)

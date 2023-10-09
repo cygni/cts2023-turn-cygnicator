@@ -1,0 +1,44 @@
+@startuml
+
+hide time-axis
+concise "Button Command" as button
+binary "TASK 1" as t1
+binary "TASK 2" as t2
+
+@0
+t1 is IDLE
+t2 is IDLE
+
+@50
+button is "TURN LEFT"
+button -> t1
+t1 is HIGH
+
+
+@150
+button is "TURN LEFT"
+button -> t1
+t1 is LOW
+
+
+@300
+button is "TURN LEFT"
+button -> t1
+t1 is HIGH
+
+
+@400
+button is "TURN RIGHT"
+button -> t2
+button -> t1
+t2 is HIGH
+t1 is LOW
+
+
+@600
+button is "TURN RIGHT"
+button -> t2
+t2 is LOW
+
+
+@enduml
