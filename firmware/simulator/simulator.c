@@ -185,95 +185,20 @@ void start_simulator(void *arg) {
   endwin();
 }
 
-int sim_printf (__const char *__restrict __format, ...)
-{
+int sim_printf(__const char *__restrict __format, ...) {
 
-     int ret_status = 0;
-     char token[LOG_CHUNK_SIZE];
-     int k = 0;
-     va_list args;
-     if ((log_buffer_index + LOG_CHUNK_SIZE) > LOG_BUF_MAX_SIZE) {
-        memset(log_buffer, 0, LOG_BUF_MAX_SIZE);
-        log_buffer_index = 0;
-        wmove(console_win, 0, 0);
-        wclrtobot(console_win);
-     };
-     va_start(args, __format);
-     // parsing the formatted string 
-    for (int i = 0; __format[i] != '\0'; i++) { 
-        token[k++] = __format[i]; 
-  
-        if (__format[i + 1] == '%' || __format[i + 1] == '\0') { 
-            token[k] = '\0'; 
-            k = 0; 
-            if (token[0] != '%') { 
-                log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, "%s", token);
-            } 
-            else { 
-                int j = 1; 
-                char ch1 = 0; 
-  
-                // this loop is required when printing 
-                // formatted value like 0.2f, when ch1='f' 
-                // loop ends 
-                while ((ch1 = token[j++]) < 58) { 
-                } 
-                // for integers 
-                if (ch1 == 'i' || ch1 == 'd' || ch1 == 'u'
-                    || ch1 == 'h') { 
-                    log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, int));
-                } 
-                // for characters 
-                else if (ch1 == 'c') { 
-                    log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, int));
-                } 
-                // for float values 
-                else if (ch1 == 'f') { 
-                  log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, double));
-                } 
-                else if (ch1 == 'l') { 
-                    char ch2 = token[2]; 
-  
-                    // for long int 
-                    if (ch2 == 'u' || ch2 == 'd'
-                        || ch2 == 'i') { 
-                        log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, long));
-                    } 
-  
-                    // for double 
-                    else if (ch2 == 'f') { 
-                      log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, double));
-                    } 
-                } 
-                else if (ch1 == 'L') { 
-                    char ch2 = token[2]; 
-  
-                    // for long long int 
-                    if (ch2 == 'u' || ch2 == 'd'
-                        || ch2 == 'i') { 
-                          log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, long long));
-                    } 
-  
-                    // for long double 
-                    else if (ch2 == 'f') { 
-                        log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, long double));
-                    } 
-                } 
-  
-                // for strings 
-                else if (ch1 == 's') { 
-                    log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, char*));
-                } 
-  
-                // print the whole token 
-                // if no case is matched 
-                else { 
-                    log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, "%s", token);
-                } 
-            } 
-        } 
-    } 
-     
-     va_end(args);
-     return ret_status;
+  va_list args;
+  if ((log_buffer_index + LOG_CHUNK_SIZE) > LOG_BUF_MAX_SIZE) {
+    memset(log_buffer, 0, LOG_BUF_MAX_SIZE);
+    log_buffer_index = 0;
+    wmove(console_win, 0, 0);
+    wclrtobot(console_win);
+  };
+
+  va_start(args, __format);
+  log_buffer_index += vsprintf(
+      log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), __format, args);
+
+  va_end(args);
+  return 0;
 }
