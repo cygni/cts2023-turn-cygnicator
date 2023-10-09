@@ -27,6 +27,7 @@ typedef enum {
   SIM_HAZARD,
   SIM_LEFT,
   SIM_RIGHT,
+  SIM_CLEAR,
   SIM_EXIT,
   SIM_OPTION_LIMIT
 } simulator_option_t;
@@ -45,11 +46,14 @@ const static wchar_t *option_list[SIM_OPTION_LIMIT] = {
     [SIM_HAZARD] = L"[h]azard",
     [SIM_LEFT] = L"[l]eft",
     [SIM_RIGHT] = L"[r]ight",
+    [SIM_CLEAR] = L"[c]lear buffer",
     [SIM_EXIT] = L"[q]uit",
 };
 
 void start_simulator(void *arg);
 
-#define printf(...)
+int sim_printf (__const char *__restrict __format, ...);
+
+#define printf sim_printf
 
 #endif // SIMULATOR_H
