@@ -4,6 +4,7 @@
 #include <ncursesw/ncurses.h>
 #include <wchar.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "cygni_ascii_logo.h"
 #include "cygnicator_headlights.h"
@@ -14,6 +15,13 @@
 
 #define CAR_BYTE_SIZE 2048 * 2
 #define LOGO_BYTE_SIZE 2048 * 3
+#define LOG_BUF_MAX_SIZE 1024
+
+#define LOG_CHUNK_SIZE 256
+
+static char log_buffer[LOG_BUF_MAX_SIZE];
+int log_buffer_index = 0;
+WINDOW* console_win;
 
 void start_simulator(void *arg) {
   simulator_params_t *gpio_map = (simulator_params_t *)arg;
@@ -35,9 +43,11 @@ void start_simulator(void *arg) {
   int c = 0;
   initscr();
   cbreak();
-  menu_win =  newwin(WIDTH, HEIGHT, 0, 0);
+  menu_win = newwin(WIDTH, HEIGHT, 0, 0);
+  console_win = newwin(WIDTH, HEIGHT, 35, 0);
   box(menu_win, WIDTH, HEIGHT);
   wrefresh(menu_win);
+  clearok(console_win, true);
   keypad(menu_win, TRUE);
   for (;;) {
     vTaskDelay(pdMS_TO_TICKS(10));
@@ -67,7 +77,13 @@ void start_simulator(void *arg) {
           gpio_button_map[BUTTON_BRAKE], 0);
       selected_option = SIM_BRAKE;
       break;
-
+    case 'c':
+        memset(log_buffer, 0, (char) LOG_BUF_MAX_SIZE);
+        log_buffer_index = 0;
+        wmove(console_win, 0, 0);
+        wclrtobot(console_win);
+        //wrefresh(console_win);
+      break;
     case 'q':
       sim_state = EXIT;
       break;
@@ -125,18 +141,20 @@ void start_simulator(void *arg) {
              gpio_map[gpio_headlight_map[REAR_RIGHT][0]].gpio_value ? headlight_on : headlight_off,
              gpio_map[gpio_headlight_map[FRONT_RIGHT][0]].gpio_value ? headlight_on : headlight_off);
 
-    swprintf(options, 255, L"       %ls    %ls    %ls    %ls    %ls",
+    swprintf(options, 255, L"       %ls    %ls    %ls    %ls    %ls    %ls",
       selected_option == SIM_BRAKE ? L"<<[b]rake>>" : option_list[SIM_BRAKE],
       selected_option == SIM_HAZARD ? L"<<[h]azard>>" : option_list[SIM_HAZARD],
       selected_option == SIM_LEFT ? L"<<[l]eft>>" : option_list[SIM_LEFT],
       selected_option == SIM_RIGHT ? L"<<[r]ight>>":  option_list[SIM_RIGHT],
+      selected_option == SIM_CLEAR ? L"<<[c]lear>>":  option_list[SIM_CLEAR],
       selected_option == SIM_EXIT ? L"<<[q]uit>>" : option_list[SIM_EXIT]);
+
 
      switch (sim_state) {
       case INTRO_LOGO:
       //wclear(menu_win);
       mvwaddwstr(menu_win, 0, 0, cygni_logo);
-      waddnwstr(menu_win, L"[Press 's' to Start", -1);
+      waddnwstr(menu_win, L"[Press 's' to Start]", -1);
       
       break;
 
@@ -144,6 +162,10 @@ void start_simulator(void *arg) {
       //wclear(menu_win);
       mvwaddwstr(menu_win, 0, 0, car);
       mvwaddwstr(menu_win, 30, 30, options);
+      if (log_buffer_index > 0) {
+        mvwaddstr(console_win, 0, 0, log_buffer);
+      }
+      
       break;
 
       case EXIT:
@@ -157,7 +179,101 @@ void start_simulator(void *arg) {
     }
 
     wrefresh(menu_win);
+    wrefresh(console_win);
   }
 
   endwin();
+}
+
+int sim_printf (__const char *__restrict __format, ...)
+{
+
+     int ret_status = 0;
+     char token[LOG_CHUNK_SIZE];
+     int k = 0;
+     va_list args;
+     if ((log_buffer_index + LOG_CHUNK_SIZE) > LOG_BUF_MAX_SIZE) {
+        memset(log_buffer, 0, LOG_BUF_MAX_SIZE);
+        log_buffer_index = 0;
+        wmove(console_win, 0, 0);
+        wclrtobot(console_win);
+     };
+     va_start(args, __format);
+     // parsing the formatted string 
+    for (int i = 0; __format[i] != '\0'; i++) { 
+        token[k++] = __format[i]; 
+  
+        if (__format[i + 1] == '%' || __format[i + 1] == '\0') { 
+            token[k] = '\0'; 
+            k = 0; 
+            if (token[0] != '%') { 
+                log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, "%s", token);
+            } 
+            else { 
+                int j = 1; 
+                char ch1 = 0; 
+  
+                // this loop is required when printing 
+                // formatted value like 0.2f, when ch1='f' 
+                // loop ends 
+                while ((ch1 = token[j++]) < 58) { 
+                } 
+                // for integers 
+                if (ch1 == 'i' || ch1 == 'd' || ch1 == 'u'
+                    || ch1 == 'h') { 
+                    log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, int));
+                } 
+                // for characters 
+                else if (ch1 == 'c') { 
+                    log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, int));
+                } 
+                // for float values 
+                else if (ch1 == 'f') { 
+                  log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, double));
+                } 
+                else if (ch1 == 'l') { 
+                    char ch2 = token[2]; 
+  
+                    // for long int 
+                    if (ch2 == 'u' || ch2 == 'd'
+                        || ch2 == 'i') { 
+                        log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, long));
+                    } 
+  
+                    // for double 
+                    else if (ch2 == 'f') { 
+                      log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, double));
+                    } 
+                } 
+                else if (ch1 == 'L') { 
+                    char ch2 = token[2]; 
+  
+                    // for long long int 
+                    if (ch2 == 'u' || ch2 == 'd'
+                        || ch2 == 'i') { 
+                          log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, long long));
+                    } 
+  
+                    // for long double 
+                    else if (ch2 == 'f') { 
+                        log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, long double));
+                    } 
+                } 
+  
+                // for strings 
+                else if (ch1 == 's') { 
+                    log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, token, va_arg(args, char*));
+                } 
+  
+                // print the whole token 
+                // if no case is matched 
+                else { 
+                    log_buffer_index += snprintf(log_buffer + (log_buffer_index % LOG_BUF_MAX_SIZE), LOG_BUF_MAX_SIZE, "%s", token);
+                } 
+            } 
+        } 
+    } 
+     
+     va_end(args);
+     return ret_status;
 }
