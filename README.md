@@ -8,6 +8,7 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
     - [GPIO configuration table](#gpio-configuration-table)
   - [Workshop goals](#workshop-goals)
 - [Workshop preparation](#workshop-preparation)
+- [Workshop](#workshop)
   - [Preparation](#preparation)
   - [Prepare the development environment](#prepare-the-development-environment)
   - [How to build an image](#how-to-build-an-image)
@@ -23,6 +24,7 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
       - [xTaskCreate()](#xtaskcreate)
       - [vTaskStartScheduler()](#vtaskstartscheduler)
       - [vTaskDelay()](#vtaskdelay)
+  - [Interrupt Handling](#interrupt-handling)
   - [Step 1: Handle button commands](#step-1-handle-button-commands)
     - [Task scheduling](#task-scheduling)
   - [Step 2: TURN LEFT and TURN RIGHT](#step-2-turn-left-and-turn-right)
@@ -130,6 +132,251 @@ Prepare the workshop
 
 This section is where you prepare and set up your development environment.
 At the end of this section, you should be able to know where to add changes, and how to build and flash. To test the circuit board, we have provided a blinky code example that is going to be flashed onto the board.
+
+Important folders and files:
+```bash
+# Your workspace, feel free to add more workspaces if needed.
+firmware/turn-cygnicator
+
+# ..we suggest you work in the same workspace throughout the workshop
+# since every step builds on the previous one.
+
+# Main entrypoint to your solution
+firmware/turn-cygnicator/main.c
+
+# Binary image that will be flashed onto the Raspberry Pi Pico
+firmware/turn-cygnicator/turn-cygnicator.uf2
+
+# Cygni turnindicator (Cygnicator) APIs
+firmware/inc
+
+# FreeRTOS kernel, you shouldn't need to touch this
+firmware/lib/FreeRTOS-Kernel
+
+# FreeRTOS configuration file for this project, you shouldn't need to touch this
+firmware/inc/FreeRTOSConfig.h
+
+```
+
+## Prepare the development environment
+
+In other words, build the docker image (`firmware/docker/Dockerfile`) that contains the FreeRTOS kernel, pico SDK, picotool and other tools/libraries that are needed.
+
+Run this command in the root folder of this repository:
+`docker build --build-arg UID="$(id -u)" -t rpisdk:latest docker/` or run
+`build_docker.sh`
+
+It takes a couple of minutes to download all dependencies, this command should only be run once.
+
+## How to build an image
+
+```bash
+cd firmware
+
+./build.sh
+
+# Expected output
+=== Output Files ===
+./firmware/build/turn-cygnicator/turn-cygnicator.uf2
+./firmware/build/blinky-demo/blinky-demo.uf2
+```
+
+## How to flash an image to Pico
+
+### Step 1: Enter programming mode
+
+Before flashing the image, the Pico needs to enter its programming mode.
+This is done by holding the BOOTSEL button (1/RED) and pressing the RESET button (2/BLUE) once while the BOOTSEL button is still held down.
+
+![alt text](img/pcb_guide_flash_steps.gif "Enter programming mode")
+
+Now the Pico should have entered programming mode, it should appear to your host computer as a mass-storage device, like a USB memory stick. If it doesn't, you need to redo step 1.
+
+### Step 2: Flash image
+
+There are two alternatives to flash in this guide.
+
+Either use:
+- **picotool** provided in the docker image 
+- **move UF2 image manually** to the mass-storage device.
+
+#### Flashing using picotool
+
+For convenience, we have included a flash script that shortens the command that is needed to flash.
+Flash blinky sample code to verify that communication towards Pico works:
+```bash
+cd firmware
+
+./flash.sh blinky-demo/blinky-demo.uf2
+```
+
+The expected results should look like this:
+![alt text](img/pcb_blinky-demo.gif "Enter programming mode")
+
+..by default this command flashes `turn-cygnicator` workspace, which is where your implementation is located. **Refer to this flash instruction during the workshop:**
+```bash
+cd firmware
+
+./flash.sh
+```
+
+**Troubleshooting flash step:**
+```bash
+# Command that you run
+$ docker run \
+  --rm \
+  -v $(pwd):$(pwd) \
+  -w $(pwd)/build \
+  --name rpibuilder \
+  --privileged rpisdk:latest \
+  /bin/picotool load -v -x blinky-demo/blinky-demo.uf2
+
+# ------------------
+# Expected output:
+Loading into Flash: [==============================]  100%
+Verifying Flash:    [==============================]  100%
+  OK
+
+The device was rebooted to start the application.
+
+# ------------------
+# If the Pico is not correctly set in BOOTSEL when running this command
+# you instead get this:
+
+No accessible RP2040 devices in BOOTSEL mode were found.
+
+# ------------------
+# We have also seen cases of this happening.
+# Move on to "Flashing by moving UF2 to mass-storage device" instead.
+ERROR: Unable to access device to reboot it; Use sudo or setup a udev rule
+```
+
+#### Flashing by moving UF2 to mass-storage device
+
+TODO
+
+Important folders and files:
+```bash
+# Your workspace, feel free to add more workspaces if needed.
+firmware/turn-cygnicator
+
+# ..we suggest you work in the same workspace throughout the workshop
+# since every step builds on the previous one.
+
+# Main entrypoint to your solution
+firmware/turn-cygnicator/main.c
+
+# Binary image that will be flashed onto the Raspberry Pi Pico
+firmware/turn-cygnicator/turn-cygnicator.uf2
+
+# Cygni turnindicator (Cygnicator) APIs
+firmware/inc
+
+# FreeRTOS kernel, you shouldn't need to touch this
+firmware/lib/FreeRTOS-Kernel
+
+# FreeRTOS configuration file for this project, you shouldn't need to touch this
+firmware/inc/FreeRTOSConfig.h
+
+```
+
+## Prepare the development environment
+
+In other words, build the docker image (`firmware/docker/Dockerfile`) that contains the FreeRTOS kernel, pico SDK, picotool and other tools/libraries that are needed.
+
+Run this command in the root folder of this repository:
+`docker build --build-arg UID="$(id -u)" -t rpisdk:latest docker/` or run
+`build_docker.sh`
+
+It takes a couple of minutes to download all dependencies, this command should only be run once.
+
+## How to build an image
+
+```bash
+cd firmware
+
+./build.sh
+
+# Expected output
+=== Output Files ===
+./firmware/build/turn-cygnicator/turn-cygnicator.uf2
+./firmware/build/blinky-demo/blinky-demo.uf2
+```
+
+## How to flash an image to Pico
+
+### Step 1: Enter programming mode
+
+Before flashing the image, the Pico needs to enter its programming mode.
+This is done by holding the BOOTSEL button (1/RED) and pressing the RESET button (2/BLUE) once while the BOOTSEL button is still held down.
+
+![alt text](img/pcb_guide_flash_steps.gif "Enter programming mode")
+
+Now the Pico should have entered programming mode, it should appear to your host computer as a mass-storage device, like a USB memory stick. If it doesn't, you need to redo step 1.
+
+### Step 2: Flash image
+
+There are two alternatives to flash in this guide.
+
+Either use:
+- **picotool** provided in the docker image 
+- **move UF2 image manually** to the mass-storage device.
+
+#### Flashing using picotool
+
+For convenience, we have included a flash script that shortens the command that is needed to flash.
+Flash blinky sample code to verify that communication towards Pico works:
+```bash
+cd firmware
+
+./flash.sh blinky-demo/blinky-demo.uf2
+```
+
+The expected results should look like this:
+
+![alt text](img/pcb_blinky-demo.gif "Enter programming mode")
+
+..by default this command flashes `turn-cygnicator` workspace, which is where your implementation is located. **Refer to this flash instruction during the workshop:**
+```bash
+cd firmware
+
+./flash.sh
+```
+
+**Troubleshooting flash step:**
+```bash
+# Command that you run
+$ docker run \
+  --rm \
+  -v $(pwd):$(pwd) \
+  -w $(pwd)/build \
+  --name rpibuilder \
+  --privileged rpisdk:latest \
+  /bin/picotool load -v -x blinky-demo/blinky-demo.uf2
+
+# ------------------
+# Expected output:
+Loading into Flash: [==============================]  100%
+Verifying Flash:    [==============================]  100%
+  OK
+
+The device was rebooted to start the application.
+
+# ------------------
+# If the Pico is not correctly set in BOOTSEL when running this command
+# you instead get this:
+
+No accessible RP2040 devices in BOOTSEL mode were found.
+
+# ------------------
+# We have also seen cases of this happening.
+# Move on to "Flashing by moving UF2 to mass-storage device" instead.
+ERROR: Unable to access device to reboot it; Use sudo or setup a udev rule
+```
+
+#### Flashing by moving UF2 to mass-storage device
+
+TODO
 
 Important folders and files:
 ```bash

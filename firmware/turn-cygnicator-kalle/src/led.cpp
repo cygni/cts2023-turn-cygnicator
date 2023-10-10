@@ -8,7 +8,7 @@
 #include "led.hpp"
 
 void ledRightToLeft(uint8_t const *leds, TickType_t delayTicks) {
-  for (uint8_t i = 0; i < HeadlightRow::SIZE_LIMIT; i++) {
+  for (uint8_t i = 0; i < HEADLIGHT_SIZE_LIMIT; i++) {
     uint8_t led = leds[i];
     gpio_put(led, true);
     vTaskDelay(delayTicks);
@@ -18,7 +18,7 @@ void ledRightToLeft(uint8_t const *leds, TickType_t delayTicks) {
 }
 
 void ledLeftToRight(uint8_t const *leds, TickType_t delayTicks) {
-  for (uint8_t i = HeadlightRow::SIZE_LIMIT - 1; i > 0; i--) {
+  for (uint8_t i = HEADLIGHT_SIZE_LIMIT - 1; i > 0; i--) {
     uint8_t led = leds[i];
     gpio_put(led, true);
     vTaskDelay(delayTicks);
@@ -28,12 +28,12 @@ void ledLeftToRight(uint8_t const *leds, TickType_t delayTicks) {
 }
 
 void ledHazard(uint8_t const *leds, TickType_t delayTicks) {
-  for (uint8_t i = 0; i < HeadlightRow::SIZE_LIMIT; i++) {
+  for (uint8_t i = 0; i < HEADLIGHT_SIZE_LIMIT; i++) {
     uint8_t led = leds[i];
     gpio_put(led, true);
   }
   vTaskDelay(delayTicks);
-  for (uint8_t i = 0; i < HeadlightRow::SIZE_LIMIT; i++) {
+  for (uint8_t i = 0; i < HEADLIGHT_SIZE_LIMIT; i++) {
     uint8_t led = leds[i];
     gpio_put(led, false);
   }
