@@ -451,17 +451,9 @@ Implement logic to handle the buttons TURN RIGHT, TURN LEFT, HAZZARD, BREAK
 ### Inter-task communication
 
 Introduce FreeRTOS API to how to create tasks and communicate between tasks e.g. queues, mailboxes whatever
-There are multiple ways/concepts that can be used for intertask communication. Queues are the primary form and they can be used to send messages between tasks, and between interrupts and tasks. In most cases they are used as thread safe FIFO (First In First Out) buffers with new data being sent to the back of the queue, altough data can also be sent to the front of the queue.
+There are multiple ways/concepts that can be used for intertask communication such as queues, Binary Semaphores, Mutexes, Direct Task notification and stream/message buffers. 
 
-
-| Description | Link |
-| ------------ | --- |
-| FreeRTOS queue API | [link](https://www.freertos.org/a00018.html) |
-| FreeRTOS tasks states | [link](https://www.freertos.org/RTOS-task-states.html) |
-| FreeRTOS Implementing tasks | [link](https://www.freertos.org/implementing-a-FreeRTOS-task.html) |
-| FreeRTOS xTaskCreate API | [link](https://www.freertos.org/a00125.html) |
-| FreeRTOS vTaskStartScheduler API | [link](https://www.freertos.org/a00132.html) |
-| FreeRTOS vTaskDelay API | [link](https://www.freertos.org/a00127.html) |
+Queues are the primary form and they can be used to send messages between tasks, and between interrupts and tasks. In most cases they are used as thread safe FIFO (First In First Out) buffers with new data being sent to the back of the queue, altough data can also be sent to the front of the queue.
 
 ### Queue example
 
@@ -496,7 +488,7 @@ static void vTaskCode_tx(void *parameters) {
     vTaskDelay(pdMS_TO_TICKS(500));
 
     tx_value = 1;
-    
+
     xQueueSend(
       message_queue,
       tx_value,
@@ -537,6 +529,143 @@ static void vTaskCode_tx(void *parameters) {
      // Will not get here unless there is insufficient RAM.
  }
 ```
+### Binary Semaphores
+
+Binary sempahores are used for both mutual exclusion and synchronisation purposes. You can think of binary semaphore as a queue with one item.
+
+```C
+// Semaphore handler
+SemaphoreHandle_t xSemaphore = NULL;
+
+static void vTaskCode_a(void *parameters) {
+  for(;;)
+  {
+    // Block task A until it can take the semaphore
+    xSemaphoreTake( xSemaphore, portMAX_DELAY );
+    // toggle the leds
+    vToggleLED();
+    
+  }
+
+  // Tasks normally never exits
+}
+static void vTaskCode_b(void *parameters) {
+  for(;;)
+  {
+
+    // Unlock the semaphore every 500 ms. 
+    vTaskDelay(pdMS_TO_TICKS(500));
+    xSemaphoreGive(xSemaphore);
+  }
+
+  // Tasks normally never exits
+}
+
+ void main()
+ {
+    // Create the binary semaphore
+    xSemaphore = xSemaphoreCreateBinary();
+
+    // Tasks can be created before or after starting the RTOS
+
+    // Create task A
+     xTaskCreate( vTaskCode_a,
+                  "vTaskCode_a", 
+                  STACK_SIZE,
+                  NULL,
+                  tskIDLE_PRIORITY,
+                  NULL );
+    // Create task B
+      xTaskCreate( vTaskCode_b,
+                  "vTaskCode_b",
+                  STACK_SIZE,
+                  NULL,
+                  tskIDLE_PRIORITY,
+                  NULL );
+
+
+     // Start the real time scheduler.
+      vTaskStartScheduler();
+
+     // Will not get here unless there is insufficient RAM.
+ }
+```
+### Mutexes 
+
+Mutexes are binary semaphores that include a priority inheritance mechanism. Whereas binary semaphores are the better choice for implementing synchronisation (between tasks or between tasks and an interrupt), mutexes are the better choice for implementing simple mutual exclusion (hence 'MUT'ual 'EX'clusion). 
+
+```C
+// Semaphore handler
+SemaphoreHandle_t xSemaphore = NULL;
+
+static void vTaskCode_a(void *parameters) {
+  for(;;)
+  {
+    // Block task A until it can take the mutex
+    xSemaphoreTake( xSemaphore, portMAX_DELAY );
+    // toggle the leds
+    vToggleLED();
+    // give the mutex back
+    xSemaphoreGive(xSemaphore);
+  }
+
+  // Tasks normally never exits
+}
+static void vTaskCode_b(void *parameters) {
+  for(;;)
+  {
+    // Block task B until it can take the mutex
+    xSemaphoreTake( xSemaphore, portMAX_DELAY );
+    // Unlock the semaphore every 500 ms. 
+    vTaskDelay(pdMS_TO_TICKS(500));
+    // give the mutex back
+    xSemaphoreGive(xSemaphore);
+  }
+
+  // Tasks normally never exits
+}
+
+ void main()
+ {
+    // Create the mutex
+    xSemaphore = xSemaphoreCreateMutex();
+
+    // Tasks can be created before or after starting the RTOS
+
+    // Create task A
+     xTaskCreate( vTaskCode_a,
+                  "vTaskCode_a", 
+                  STACK_SIZE,
+                  NULL,
+                  tskIDLE_PRIORITY,
+                  NULL );
+    // Create task B
+      xTaskCreate( vTaskCode_b,
+                  "vTaskCode_b",
+                  STACK_SIZE,
+                  NULL,
+                  tskIDLE_PRIORITY,
+                  NULL );
+
+
+     // Start the real time scheduler.
+      vTaskStartScheduler();
+
+     // Will not get here unless there is insufficient RAM.
+ }
+```
+### Direct Task notification 
+
+### stream/message buffers
+
+| Description | Link |
+| ------------ | --- |
+| FreeRTOS Queues | [link](https://www.freertos.org/Embedded-RTOS-Queues.html) |
+| FreeRTOS Queue API | [link](https://www.freertos.org/a00018.html) |
+| FreeRTOS Implementing tasks | [link](https://www.freertos.org/implementing-a-FreeRTOS-task.html) |
+| FreeRTOS xTaskCreate API | [link](https://www.freertos.org/a00125.html) |
+| FreeRTOS vTaskStartScheduler API | [link](https://www.freertos.org/a00132.html) |
+| FreeRTOS vTaskDelay API | [link](https://www.freertos.org/a00127.html) |
 ## Step 2: TURN LEFT and TURN RIGHT
 
 **Expected results:**
