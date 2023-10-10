@@ -8,9 +8,9 @@
 
 #include "simulator.h"
 
-void stdio_init_all() {
-  xTaskCreate(start_simulator, "blinky-demo", configMINIMAL_STACK_SIZE,
-              gpio_map, 0, NULL);
+static void stdio_init_all() {
+  xTaskCreate(start_simulator, "simulator", configMINIMAL_STACK_SIZE,
+              NULL, 0, NULL);
 }
 
 #endif // PICO_STDIO_H
