@@ -253,7 +253,9 @@ ERROR: Unable to access device to reboot it; Use sudo or setup a udev rule
 
 #### Flashing by moving UF2 to mass-storage device
 
-TODO
+The output file *.UF2 can also be flahed by moving it into Pico when it shows up as mass-storage device after putting the pico into BOOTSEL mode.
+
+![alt text](img/drag_drop.png "moving UF2 to mass-storage")
 
 Important folders and files:
 ```bash
@@ -286,12 +288,79 @@ Now the actual workshop starts
 
 ## Pico SDK API - Interrupt Handling
 
-TODO Introduce pico SDK calls to configure interrupt handling and callbacks on button presses.
+With the pico SDK you can configure IRQ handling for GPIO. In the example bellow we have configurad an IRQ for button TURN_LEFT which will print "Received an interrupt!" each time we click the button.
 
+```C
+
+void gpio_callback(uint gpio, uint32_t events) {
+  printf("Received an interrupt on gpio %d with event %d! \n", gpio, events);
+}
+
+int main() {
+  gpio_set_irq_enabled_with_callback(
+    GPIO_BUTTON_TURN_LEFT, // gpio value
+    GPIO_IRQ_EDGE_RISE,    // event mask
+    true,                  // enabled
+    &gpio_callback         // call back function
+    );
+}
+
+```
+The callback function protoype is defined as:
+```C
+typedef void(* gpio_irq_callback_t) (uint gpio, uint32_t event_mask)
+```
+you can have 1 to more interrupt events configured for same gpio
+```C
+// Event mask definition
+enum gpio_irq_level {
+  GPIO_IRQ_LEVEL_LOW = 0x1u,
+  GPIO_IRQ_LEVEL_HIGH = 0x2u,
+  GPIO_IRQ_EDGE_FALL = 0x4u,
+  GPIO_IRQ_EDGE_RISE = 0x8u
+};
+
+//Eg:
+gpio_set_irq_enabled_with_callback(
+    GPIO_BUTTON_TURN_LEFT, // gpio value
+    GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, // event mask
+    true,                  // enabled
+    &gpio_callback         // call back function
+    );
+
+```
+
+see reference: [gpio_set_irq_enabled_with_callback](https://www.raspberrypi.com/documentation/pico-sdk/hardware.html#ga6165f07f4b619dd08ea6dc97d069e78a)
 
 ### Cygnicator API
 
-TODO Introduce our API for how to turn on LED rows
+Since the main focus of this workshop will be freeRTOS, we have provided an API for you to use to control the buzzer and leds, **inc/cygnicator_headlights.h**
+
+This API includes TYPES and GPIO mappings to eaze the process of turning on/off leds and use the buzzer: 
+
+Here are some examples on how to use the API:
+
+```C
+// Turn on a led row:
+for (int i = 0; i < HEADLIGHT_SIZE_LIMIT; i++) {
+  gpio_put(gpio_headlight_map[FRONT_LEFT][i], 1);
+}
+
+// Check the state of a button
+if (1 == gpio_get(gpio_button_map[BUTTON_LEFT_INDICATOR])) {
+  printf("BUTTON_LEFT_INDICATOR is pressed \n");
+} else {
+  printf("BUTTON_LEFT_INDICATOR is not pressed");
+}
+
+//play a tone with the buzzer
+void play_tone()
+{
+    const uint slice_num = pwm_gpio_to_slice_num(gpio_buzzer_map[BUZZER_FRONT]);
+    pwm_set_wrap(slice_num, 8590);
+    pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], 8192);
+}
+```
 ### FreeRTOS Task API
 
 A real-time application that uses an RTOS can be structured as a set of independent tasks. Each task executes within its own context with no coincidental dependency on other tasks within the system or the RTOS scheduler itself. Only one task within the application can be executing at any point in time and the real-time RTOS scheduler is responsible for deciding which task this should be. The RTOS scheduler may therefore repeatedly start and stop each task (swap each task in and out) as the application executes. As a task has no knowledge of the RTOS scheduler activity it is the responsibility of the real-time RTOS scheduler to ensure that the processor context (register values, stack contents, etc) when a task is swapped in is exactly that as when the same task was swapped out. To achieve this each task is provided with its own stack. When the task is swapped out the execution context is saved to the stack of that task so it can also be exactly restored when the same task is later swapped back in. 
