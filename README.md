@@ -448,10 +448,95 @@ void vTaskFunction( void * pvParameters )
 
 Implement logic to handle the buttons TURN RIGHT, TURN LEFT, HAZZARD, BREAK
 
-### Task scheduling
+### Inter-task communication
 
 Introduce FreeRTOS API to how to create tasks and communicate between tasks e.g. queues, mailboxes whatever
+There are multiple ways/concepts that can be used for intertask communication. Queues are the primary form and they can be used to send messages between tasks, and between interrupts and tasks. In most cases they are used as thread safe FIFO (First In First Out) buffers with new data being sent to the back of the queue, altough data can also be sent to the front of the queue.
 
+
+| Description | Link |
+| ------------ | --- |
+| FreeRTOS queue API | [link](https://www.freertos.org/a00018.html) |
+| FreeRTOS tasks states | [link](https://www.freertos.org/RTOS-task-states.html) |
+| FreeRTOS Implementing tasks | [link](https://www.freertos.org/implementing-a-FreeRTOS-task.html) |
+| FreeRTOS xTaskCreate API | [link](https://www.freertos.org/a00125.html) |
+| FreeRTOS vTaskStartScheduler API | [link](https://www.freertos.org/a00132.html) |
+| FreeRTOS vTaskDelay API | [link](https://www.freertos.org/a00127.html) |
+
+### Queue example
+
+```C
+// Queue handler
+static QueueHandle_t message_queue = NULL;
+
+static void vTaskCode_rx(void *parameters) {
+  int rx_value = 0;
+  for(;;)
+  {
+    // block the rx task until a message is received on the queue with portMAX_DELAY
+    xQueueReceive(
+                    message_queue,
+                    &rx_value,
+                    portMAX_DELAY
+                            );
+
+    // if message received is equal to 1 then toggle the leds
+    if (received == 1)  {
+      vToggleLED();
+    }
+  }
+
+  // Tasks normally never exits
+}
+static void vTaskCode_tx(void *parameters) {
+  int tx_value = 0;
+  for(;;)
+  {
+    // Send a 1 to message_queue every 500 ms. 
+    vTaskDelay(pdMS_TO_TICKS(500));
+
+    tx_value = 1;
+    
+    xQueueSend(
+      message_queue,
+      tx_value,
+      0
+    );
+
+  }
+
+  // Tasks normally never exits
+}
+
+ void main()
+ {
+    // create a queue that can hold 3 integers
+    message_queue = xQueueCreate(3, sizeof(int));
+
+    // Tasks can be created before or after starting the RTOS
+
+    // Create RX task
+     xTaskCreate( vTaskCode_rx,
+                  "vTaskCode_rx", 
+                  STACK_SIZE,
+                  NULL,
+                  tskRECEIVE_PRIORITY,
+                  NULL );
+    // Create TX task
+      xTaskCreate( vTaskCode_tx,
+                  "vTaskCode_tx",
+                  STACK_SIZE,
+                  NULL,
+                  tskSEND_PRIORITY,
+                  NULL );
+
+
+     // Start the real time scheduler.
+      vTaskStartScheduler();
+
+     // Will not get here unless there is insufficient RAM.
+ }
+```
 ## Step 2: TURN LEFT and TURN RIGHT
 
 **Expected results:**
