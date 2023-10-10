@@ -10,8 +10,11 @@
 
 // Pico have 26 GPIOs in total
 #define NUM_OF_PINS 26
+#define PICO_DEFAULT_LED_PIN 0
+#define GPIO_OUT 1
+#define GPIO_IN 0
 
-static simulator_params_t gpio_map[NUM_OF_PINS] = {0};
+extern simulator_gpio_map_t gpio_map[NUM_OF_PINS];
 
 enum gpio_function {
   GPIO_FUNC_XIP = 0,
@@ -34,10 +37,7 @@ enum gpio_irq_level {
   GPIO_IRQ_EDGE_RISE = 0x8u
 };
 
-#define GPIO_OUT 1
-#define GPIO_IN 0
-
-void gpio_init(uint gpio) { (void)gpio; }
+static void gpio_init(uint gpio) { (void)gpio; }
 
 static void gpio_set_dir_in_masked(uint32_t mask) { (void)mask; };
 static void gpio_set_dir_out_masked(uint32_t mask) { (void)mask; };
@@ -53,7 +53,7 @@ static void gpio_set_dir(uint gpio, bool out) {
   (void)out;
 }
 
-void gpio_init_mask(uint gpio_mask) { (void)gpio_mask; }
+static void gpio_init_mask(uint gpio_mask) { (void)gpio_mask; }
 
 static bool gpio_get(uint gpio) { return gpio_map[gpio].gpio_value; }
 static void gpio_put(uint gpio, bool value) {
@@ -62,7 +62,7 @@ static void gpio_put(uint gpio, bool value) {
 
 static void gpio_pull_up(uint gpio) { (void)gpio; }
 
-void gpio_set_function(uint gpio, enum gpio_function fn) {
+static void gpio_set_function(uint gpio, enum gpio_function fn) {
   (void)gpio;
   (void)fn;
 }
