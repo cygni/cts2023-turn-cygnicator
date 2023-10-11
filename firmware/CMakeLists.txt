@@ -13,8 +13,8 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/inc
 )
 
-#add_subdirectory(blinky-demo)
+add_subdirectory(blinky-demo)
 add_subdirectory(turn-cygnicator-reference)
-#add_subdirectory(turn-cygnicator-kalle)
+add_subdirectory(turn-cygnicator-kalle)
 add_subdirectory(turn-cygnicator-hampus)
 #add_subdirectory(turn-cygnicator-rasmus)

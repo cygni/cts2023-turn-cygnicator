@@ -6,7 +6,6 @@
 #include "stdbool.h"
 #include "stdint.h"
 #include "stdio.h"
-#include <pthread.h>
 
 // Pico have 26 GPIOs in total
 #define NUM_OF_PINS 26
@@ -37,7 +36,10 @@ enum gpio_irq_level {
   GPIO_IRQ_EDGE_RISE = 0x8u
 };
 
-static void gpio_init(uint gpio) { (void)gpio; }
+static void gpio_init(uint gpio) {
+  (void)gpio;
+  start_simulator_task();
+}
 
 static void gpio_set_dir_in_masked(uint32_t mask) { (void)mask; };
 static void gpio_set_dir_out_masked(uint32_t mask) { (void)mask; };

@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <wchar.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef unsigned int uint;
 
 typedef void (*gpio_irq_callback_t)(uint gpio, uint32_t event_mask);
@@ -28,8 +32,14 @@ typedef enum {
 
 void start_simulator(void *arg);
 
-int sim_printf (__const char *__restrict __format, ...);
+void start_simulator_task();
+
+int sim_printf(__const char *__restrict __format, ...);
 
 #define printf sim_printf
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SIMULATOR_H
