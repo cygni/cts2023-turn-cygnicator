@@ -656,16 +656,32 @@ static void vTaskCode_b(void *parameters) {
 ```
 ### Direct Task notification 
 
+A direct to task notification is an event sent directly to a task, rather than indirectly to a task via an intermediary object such as a queue, event group or semaphore. Sending a direct to task notification to a task sets the state of the target task notification to 'pending'. Just as a task can block on an intermediary object such as a semaphore to wait for that semaphore to be available, a task can block on a task notification to wait for that notification's state to become pending. 
+
+You can use direct task notification as a lightweight:
+* Binary Semaphore
+* Counting Semaphore
+* Event Group
+* Mailbox
+
 ### stream/message buffers
+
+Stream buffers are an RTOS task to RTOS task, and interrupt to task communication primitives. Unlike most other FreeRTOS communications primitives, they are optimised for single reader single writer scenarios, such as passing data from an interrupt service routine to a task, or from one microcontroller core to another on dual core CPUs. Data is passed by copy - the data is copied into the buffer by the sender and out of the buffer by the read.
+
+Stream buffers pass a continuous stream of bytes. Message buffers pass variable sized but discrete messages. Message buffers use stream buffers for data transfer. 
 
 | Description | Link |
 | ------------ | --- |
 | FreeRTOS Queues | [link](https://www.freertos.org/Embedded-RTOS-Queues.html) |
 | FreeRTOS Queue API | [link](https://www.freertos.org/a00018.html) |
-| FreeRTOS Implementing tasks | [link](https://www.freertos.org/implementing-a-FreeRTOS-task.html) |
-| FreeRTOS xTaskCreate API | [link](https://www.freertos.org/a00125.html) |
-| FreeRTOS vTaskStartScheduler API | [link](https://www.freertos.org/a00132.html) |
-| FreeRTOS vTaskDelay API | [link](https://www.freertos.org/a00127.html) |
+| FreeRTOS Binary Sempahores | [link](https://www.freertos.org/Embedded-RTOS-Binary-Semaphores.html) |
+| FreeRTOS Mutex | [link](https://www.freertos.org/Real-time-embedded-RTOS-mutexes.html) |
+| FreeRTOS Semaphore/mutex API | [link](https://www.freertos.org/a00113.html) |
+| FreeRTOS Task Notifications | [link](https://www.freertos.org/RTOS-task-notifications.html) |
+| FreeRTOS Task Notifications API | [link](https://www.freertos.org/RTOS-task-notification-API.html) |
+| FreeRTOS Stream & Message Buffers | [link](https://www.freertos.org/RTOS-stream-message-buffers.html) |
+| FreeRTOS Stream buffers API | [link](https://www.freertos.org/RTOS-stream-buffer-API.html) |
+| FreeRTOS Message buffers API | [link](https://www.freertos.org/RTOS-message-buffer-API.html) |
 ## Step 2: TURN LEFT and TURN RIGHT
 
 **Expected results:**
