@@ -2,30 +2,104 @@
 #include <curses.h>
 #include <locale.h>
 #include <ncursesw/ncurses.h>
-#include <wchar.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
+#include "car_ascii.h"
 #include "cygni_ascii_logo.h"
 #include "cygnicator_headlights.h"
+#include "pico/gpio.h"
 #include "simulator.h"
 
 #define WIDTH 500
 #define HEIGHT 500
-
 #define CAR_BYTE_SIZE 2048 * 2
 #define LOGO_BYTE_SIZE 2048 * 3
-#define LOG_BUF_MAX_SIZE 1024
-
+#define LOG_BUF_MAX_SIZE 1048
 #define LOG_CHUNK_SIZE 256
+#define SIMULATOR_REFRESH_RATE_MS 10
 
 static char log_buffer[LOG_BUF_MAX_SIZE];
-int log_buffer_index = 0;
-WINDOW* console_win;
+static int log_buffer_index = 0;
+static WINDOW *console_win;
+
+static const wchar_t *option_list[SIM_OPTION_LIMIT] = {
+    [SIM_NONE] = L"",
+    [SIM_BRAKE] = L"[b]rake",
+    [SIM_HAZARD] = L"[h]azard",
+    [SIM_LEFT] = L"[l]eft",
+    [SIM_RIGHT] = L"[r]ight",
+    [SIM_CLEAR] = L"[c]lear buffer",
+    [SIM_EXIT] = L"[q]uit"
+};
+
+static const wchar_t *option_list_selected[SIM_OPTION_LIMIT] = {
+    [SIM_NONE] = L"",
+    [SIM_BRAKE] = L"<<[b]rake>>",
+    [SIM_HAZARD] = L"<<[h]azard>>",
+    [SIM_LEFT] = L"<<[l]eft>>",
+    [SIM_RIGHT] = L"<<[r]ight>>",
+    [SIM_CLEAR] = L"<<[c]lear buffer>>",
+    [SIM_EXIT] = L"<<[q]uit>>"
+};
+
+simulator_gpio_map_t gpio_map[NUM_OF_PINS] = {0};
+
+static wchar_t *get_headlight_symbol(int led_position, int led_index) {
+  return gpio_map[gpio_headlight_map[led_position][led_index]].gpio_value
+             ? L"🌟"
+             : L"[]";
+}
+
+static simulator_option_t handle_input(int selected_char) {
+  simulator_option_t selected_option = SIM_NONE;
+
+  switch (selected_char) {
+  case 'l':
+  case KEY_LEFT:
+    gpio_map[gpio_button_map[BUTTON_LEFT_INDICATOR]].interrupt_callback(
+        gpio_button_map[BUTTON_LEFT_INDICATOR], 0);
+    selected_option = SIM_LEFT;
+    break;
+  case 'r':
+  case KEY_RIGHT:
+    gpio_map[gpio_button_map[BUTTON_RIGHT_INDICATOR]].interrupt_callback(
+        gpio_button_map[BUTTON_RIGHT_INDICATOR], 0);
+    selected_option = SIM_RIGHT;
+    break;
+  case 'h':
+    gpio_map[gpio_button_map[BUTTON_HAZARD]].interrupt_callback(
+        gpio_button_map[BUTTON_HAZARD], 0);
+    selected_option = SIM_HAZARD;
+    break;
+  case 'b':
+    gpio_map[gpio_button_map[BUTTON_BRAKE]].interrupt_callback(
+        gpio_button_map[BUTTON_BRAKE], 0);
+    selected_option = SIM_BRAKE;
+    break;
+  case 'c':
+    memset(log_buffer, 0, (char)LOG_BUF_MAX_SIZE);
+    log_buffer_index = 0;
+    wmove(console_win, 0, 0);
+    wclrtobot(console_win);
+    break;
+  case 'q':
+    endwin();
+    exit(0);
+    break;
+  case 's':
+    selected_option = SIM_START;
+    break;
+  default:
+    break;
+  };
+
+  return selected_option;
+}
 
 void start_simulator(void *arg) {
-  simulator_params_t *gpio_map = (simulator_params_t *)arg;
-  simulator_state_t sim_state = INTRO_LOGO;
+  (void)arg;
   simulator_option_t selected_option = SIM_NONE;
 
   WINDOW *menu_win;
@@ -33,14 +107,9 @@ void start_simulator(void *arg) {
   wchar_t car[CAR_BYTE_SIZE];
   wchar_t options[255];
 
-  wchar_t *headlight_on = L"🌟";
-  wchar_t *headlight_off = L"[]";
-
   // Need to set locale to use wide characters
   setlocale(LC_ALL, "");
 
-
-  int c = 0;
   initscr();
   cbreak();
   menu_win = newwin(WIDTH, HEIGHT, 0, 0);
@@ -49,133 +118,55 @@ void start_simulator(void *arg) {
   wrefresh(menu_win);
   clearok(console_win, true);
   keypad(menu_win, TRUE);
+  bool simulator_started = FALSE;
+
   for (;;) {
-    vTaskDelay(pdMS_TO_TICKS(10));
+    vTaskDelay(pdMS_TO_TICKS(SIMULATOR_REFRESH_RATE_MS));
 
-    // Useful emojis: 💡 🚘
-    c = wgetch(menu_win);
-    switch (c) {
-    case 'l':
-    case KEY_LEFT:
-      gpio_map[gpio_button_map[BUTTON_LEFT_INDICATOR]].interrupt_callback(
-          gpio_button_map[BUTTON_LEFT_INDICATOR], 0);
-      selected_option = SIM_LEFT;
-      break;
-    case 'r':
-    case KEY_RIGHT:
-      gpio_map[gpio_button_map[BUTTON_RIGHT_INDICATOR]].interrupt_callback(
-          gpio_button_map[BUTTON_RIGHT_INDICATOR], 0);
-      selected_option = SIM_RIGHT;
-      break;
-    case 'h':
-      gpio_map[gpio_button_map[BUTTON_HAZARD]].interrupt_callback(
-          gpio_button_map[BUTTON_HAZARD], 0);
-      selected_option = SIM_HAZARD;
-      break;
-    case 'b':
-      gpio_map[gpio_button_map[BUTTON_BRAKE]].interrupt_callback(
-          gpio_button_map[BUTTON_BRAKE], 0);
-      selected_option = SIM_BRAKE;
-      break;
-    case 'c':
-        memset(log_buffer, 0, (char) LOG_BUF_MAX_SIZE);
-        log_buffer_index = 0;
-        wmove(console_win, 0, 0);
-        wclrtobot(console_win);
-        //wrefresh(console_win);
-      break;
-    case 'q':
-      sim_state = EXIT;
-      break;
+    selected_option = handle_input(wgetch(menu_win));
+    if (selected_option == SIM_START) {
+      simulator_started = TRUE;
+      werase(menu_win);
+    }
 
-    case 's':
-      sim_state = SIMULATOR_ON;
-      wclear(menu_win);
-      break;
-    default:
-    };
-    
-    swprintf(car, CAR_BYTE_SIZE,
-             L" \\
- ███████████████     █████████████████████████████████████████████████████████████████████                 \n\
-███████████████████████████  ██████████████████████████████████████████    █████████████████████████████   \n\
-███████████████████████ ███ ██        ██             ██    █████████  ███████████████████████████████████  \n\
-████████████████████      ██ ██      ██              ██████████     █  █                            █  ███ \n\
-███          █████████████████████████████████████████████          ██ ██                           █  ███ \n\
-███                        ██████████████████████████                █ █████████                    █  ███ \n\
-█%ls                        ███                   ██ █                ██████████████████████████████ %ls ███ \n\
-█%ls                        ███                   ██ █                 █ █████                       %ls  ██ \n\
-█%ls                        ███                   ██ █                 █ █████                       %ls  ██ \n\
-█%ls                        ███                   ██ █                 ███████                       %ls  ██ \n\
-██                         ███                   ██ █                 ███████                        █  ██ \n\
-██                         ███                   ██ █                 ███████                        █  ██ \n\
-██                         ███                   ██ █                 ███████                        █  ██ \n\
-██                         ███                   ██ █                 ███████                        █  ██ \n\
-██                         ███                   ██ █                 ███████                        █  ██ \n\
-██                         ███                   ██ █                 ███████                        █  ██ \n\
-██                         ███                   ██ █                 ███████                        █  ██ \n\
-█%ls                        ███                   ██ █                 ███████                       %ls  ██ \n\
-█%ls                        ███                   ██ █                 █ █████                       %ls ███ \n\
-█%ls                        ███                   ██ █                ██████████████████████████████ %ls ███ \n\
-█%ls                        ████████████████████████ █                ████████████                   %ls ███ \n\
-███           ████████████████████████████████████████████          ██ ██                           █  ███ \n\
-████████████████████      ██ ██      ██              ██████████     █  █                            █ ███  \n\
-██████████████████████  ██  ██        ██             ██    █████████  ███████████████████████████████████  \n\
-███████████████████████████  ██████████████████████████████████████████     ████████████████████████████   \n\
-  ███████████████    █████████████████████████████████████████████████████████████████████                 \n\
-  ",
-             gpio_map[gpio_headlight_map[REAR_LEFT][3]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[FRONT_LEFT][3]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[REAR_LEFT][2]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[FRONT_LEFT][2]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[REAR_LEFT][1]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[FRONT_LEFT][1]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[REAR_LEFT][0]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[FRONT_LEFT][0]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[REAR_RIGHT][3]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[FRONT_RIGHT][3]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[REAR_RIGHT][2]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[FRONT_RIGHT][2]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[REAR_RIGHT][1]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[FRONT_RIGHT][1]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[REAR_RIGHT][0]].gpio_value ? headlight_on : headlight_off,
-             gpio_map[gpio_headlight_map[FRONT_RIGHT][0]].gpio_value ? headlight_on : headlight_off);
+    swprintf(
+        car, CAR_BYTE_SIZE, ascii_car, get_headlight_symbol(REAR_LEFT, 3),
+        get_headlight_symbol(FRONT_LEFT, 3), get_headlight_symbol(REAR_LEFT, 2),
+        get_headlight_symbol(FRONT_LEFT, 2), get_headlight_symbol(REAR_LEFT, 1),
+        get_headlight_symbol(FRONT_LEFT, 1), get_headlight_symbol(REAR_LEFT, 0),
+        get_headlight_symbol(FRONT_LEFT, 0),
+        get_headlight_symbol(REAR_RIGHT, 3),
+        get_headlight_symbol(FRONT_RIGHT, 3),
+        get_headlight_symbol(REAR_RIGHT, 2),
+        get_headlight_symbol(FRONT_RIGHT, 2),
+        get_headlight_symbol(REAR_RIGHT, 1),
+        get_headlight_symbol(FRONT_RIGHT, 1),
+        get_headlight_symbol(REAR_RIGHT, 0),
+        get_headlight_symbol(FRONT_RIGHT, 0));
 
-    swprintf(options, 255, L"       %ls    %ls    %ls    %ls    %ls    %ls",
-      selected_option == SIM_BRAKE ? L"<<[b]rake>>" : option_list[SIM_BRAKE],
-      selected_option == SIM_HAZARD ? L"<<[h]azard>>" : option_list[SIM_HAZARD],
-      selected_option == SIM_LEFT ? L"<<[l]eft>>" : option_list[SIM_LEFT],
-      selected_option == SIM_RIGHT ? L"<<[r]ight>>":  option_list[SIM_RIGHT],
-      selected_option == SIM_CLEAR ? L"<<[c]lear>>":  option_list[SIM_CLEAR],
-      selected_option == SIM_EXIT ? L"<<[q]uit>>" : option_list[SIM_EXIT]);
+    if (selected_option != SIM_NONE) {
+      swprintf(options, 255, L"       %ls    %ls    %ls    %ls    %ls    %ls",
+               selected_option == SIM_BRAKE ? option_list_selected[SIM_BRAKE]
+                                            : option_list[SIM_BRAKE],
+               selected_option == SIM_HAZARD ? option_list_selected[SIM_HAZARD]
+                                             : option_list[SIM_HAZARD],
+               selected_option == SIM_LEFT ? option_list_selected[SIM_LEFT]
+                                           : option_list[SIM_LEFT],
+               selected_option == SIM_RIGHT ? option_list_selected[SIM_RIGHT]
+                                            : option_list[SIM_RIGHT],
+                                            option_list[SIM_CLEAR],
+                                            option_list[SIM_EXIT]);
+    }
 
-
-     switch (sim_state) {
-      case INTRO_LOGO:
-      //wclear(menu_win);
-      mvwaddwstr(menu_win, 0, 0, cygni_logo);
-      waddnwstr(menu_win, L"[Press 's' to Start]", -1);
-      
-      break;
-
-      case SIMULATOR_ON:
-      //wclear(menu_win);
+    if (simulator_started) {
       mvwaddwstr(menu_win, 0, 0, car);
       mvwaddwstr(menu_win, 30, 30, options);
       if (log_buffer_index > 0) {
         mvwaddstr(console_win, 0, 0, log_buffer);
       }
-      
-      break;
-
-      case EXIT:
-      endwin();
-      exit(0);
-      break;
-
-      default:
-
-      break;
+    } else {
+      mvwaddwstr(menu_win, 0, 0, cygni_logo);
+      waddnwstr(menu_win, L"[Press 's' to Start]", -1);
     }
 
     wrefresh(menu_win);

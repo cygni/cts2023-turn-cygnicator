@@ -1,7 +1,10 @@
+#ifndef CYGNI_ASCII_LOGO_H
+#define CYGNI_ASCII_LOGO_H
+
 #include <ncursesw/ncurses.h>
 #include <wchar.h>
 
-const wchar_t *cygni_logo = L"\
+static const wchar_t *cygni_logo = L"\
                                                                                                                             \n\
                ███████                                                                                                ███   \n\
           █████████████████                                                                                         ███████ \n\
@@ -40,6 +43,6 @@ const wchar_t *cygni_logo = L"\
  █████    ██████  █     █       ██     █  ██       ████████ ███      ██      ████████████   ██  ██   ██   ███ ██   ████████ \n\
  █       █    ██  █     █       ██    ██  ██       █████████ ██   ██████   █████   ██████   ██  ██   ██   ███ ██   ███   ██ \n\
  █       ███████  █     ███      ██████   ██      ███    ███  ██████  ██████   ██████ ███   ██  ████ ████████ ██    ██████  \n\
-";                                                                                                                                          
-                                                                                                                                                      
-                                                                                                            
+";
+
+#endif // CYGNI_ASCII_LOGO_H

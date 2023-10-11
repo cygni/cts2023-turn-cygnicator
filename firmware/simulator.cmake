@@ -26,6 +26,9 @@ add_library(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/simulator/simulator.c
 )
 
+add_definitions(-DNCURSES_WIDECHAR=1)
+add_compile_options("-Wno-unused-function")
+
 target_link_libraries(${PROJECT_NAME}
     ${CURSES_LIBRARIES}
 )

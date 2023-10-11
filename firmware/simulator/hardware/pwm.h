@@ -2,6 +2,7 @@
 #define PICO_PWM_H
 
 #include "simulator.h"
+#include <ncurses.h>
 #include <stdio.h>
 
 static uint pwm_gpio_to_slice_num(uint gpio) { return gpio; }
@@ -14,7 +15,7 @@ static void pwm_set_wrap(uint slice_num, uint16_t wrap) {
 static void pwm_set_gpio_level(uint gpio, uint16_t level) {
   (void)gpio;
   if (level > 0) {
-    fprintf(stdout, "\a\n");
+    beep();
   }
 }
 
