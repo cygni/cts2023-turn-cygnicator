@@ -10,6 +10,10 @@ firmware_dir="$(pwd)"
 mkdir build
 docker run --rm --user "$(id -u)" -v "${firmware_dir}":"${firmware_dir}" -w "$(pwd)/build" --name rpibuilder rpisdk:latest /usr/bin/cmake .. "$@"
 docker run --rm --user "$(id -u)" -v "${firmware_dir}":"${firmware_dir}" -w "$(pwd)/build" --name rpibuilder rpisdk:latest /usr/bin/make
-echo -e "\n${YELLOW}=== Output Files ===${GREEN}"
+
+echo -e "\n${YELLOW}=== Simulator Output Files ===${GREEN}"
+find . -type f -executable ! -name "*.*"
+echo -e "${ENDCOLOR}"
+echo -e "\n${YELLOW}=== Raspberry Pico Output Files ===${GREEN}"
 find . -name "*.uf2"
 echo -e "${ENDCOLOR}"

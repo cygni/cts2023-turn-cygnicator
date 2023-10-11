@@ -6,14 +6,12 @@
 #include "pico/gpio.h"
 #include "pico/stdlib.h"
 
-const uint LED_PIN = PICO_DEFAULT_LED_PIN;
+const uint LED_PIN = 2;
 
 void blinky(void *) {
   for (;;) {
-    //printf("Wax on");
     gpio_put(LED_PIN, 1);
     vTaskDelay(pdMS_TO_TICKS(250));
-    //printf("Wax off");
     gpio_put(LED_PIN, 0);
     vTaskDelay(pdMS_TO_TICKS(250));
   }
