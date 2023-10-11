@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # for simulator
 RUN apt-get install -y --no-install-recommends libncurses5-dev
+RUN apt-get install -y locales
+RUN locale-gen en_IN.utf-8
+ENV LC_ALL=C.UTF-8
 
 ARG UID=1000
 RUN useradd -m -u ${UID} -s /bin/bash builder
