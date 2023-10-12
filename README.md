@@ -450,10 +450,9 @@ Implement logic to handle the buttons TURN RIGHT, TURN LEFT, HAZZARD, BREAK
 
 ### Inter-task communication
 
-Introduce FreeRTOS API to how to create tasks and communicate between tasks e.g. queues, mailboxes whatever
 There are multiple ways/concepts that can be used for intertask communication such as queues, Binary Semaphores, Mutexes, Direct Task notification and stream/message buffers. 
 
-Queues are the primary form and they can be used to send messages between tasks, and between interrupts and tasks. In most cases they are used as thread safe FIFO (First In First Out) buffers with new data being sent to the back of the queue, altough data can also be sent to the front of the queue.
+Queues are the primary form and they can be used to send messages between tasks, and between interrupts and tasks. In most cases they are used as thread safe FIFO (First In First Out) buffers with new data being sent to the back of the queue, although data can also be sent to the front of the queue.
 
 ### Queue example
 
@@ -531,7 +530,7 @@ static void vTaskCode_tx(void *parameters) {
 ```
 ### Binary Semaphores
 
-Binary sempahores are used for both mutual exclusion and synchronisation purposes. You can think of binary semaphore as a queue with one item.
+Binary sempahores are used for both mutual exclusion and synchronisation purposes. You can think of binary semaphore as a queue with one item. There are also counting semaphores which works in a similar way but instead of having 1 item in the queue you can have multiple items.
 
 ```C
 // Semaphore handler
@@ -664,11 +663,178 @@ You can use direct task notification as a lightweight:
 * Event Group
 * Mailbox
 
+Basic example:
+```C
+/* Prototypes of the two tasks created by main(). */
+static void prvTask1( void *pvParameters );
+static void prvTask2( void *pvParameters );
+
+/* Handles for the tasks create by main(). */
+static TaskHandle_t xTask1 = NULL, xTask2 = NULL;
+
+/* Create two tasks that send notifications back and forth to each other, 
+then start the RTOS scheduler. */
+void main( void )
+{
+    xTaskCreate( prvTask1, "Task1", 200, NULL, tskIDLE_PRIORITY, &xTask1 );
+    xTaskCreate( prvTask2, "Task2", 200, NULL, tskIDLE_PRIORITY, &xTask2 );
+    vTaskStartScheduler();
+}
+/*-----------------------------------------------------------*/
+
+/* prvTask1() uses the 'indexed' version of the API. */
+static void prvTask1( void *pvParameters )
+{
+    for( ;; )
+    {
+        /* Send notification to prvTask2(), bringing it out of the 
+        Blocked state. */
+        xTaskNotifyGiveIndexed( xTask2, 0 );
+
+        /* Block to wait for prvTask2() to notify this task. */
+        ulTaskNotifyTakeIndexed( 0, pdTRUE, portMAX_DELAY );
+    }
+}
+/*-----------------------------------------------------------*/
+
+/* prvTask2() uses the original version of the API (without the 
+'Indexed'). */
+static void prvTask2( void *pvParameters )
+{
+    for( ;; )
+    {
+        /* Block to wait for prvTask1() to notify this task. */
+        ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+
+        /* Send a notification to prvTask1(), bringing it out of the 
+        Blocked state. */
+        xTaskNotifyGive( xTask1 );
+    }
+}
+```
+
 ### stream/message buffers
 
 Stream buffers are an RTOS task to RTOS task, and interrupt to task communication primitives. Unlike most other FreeRTOS communications primitives, they are optimised for single reader single writer scenarios, such as passing data from an interrupt service routine to a task, or from one microcontroller core to another on dual core CPUs. Data is passed by copy - the data is copied into the buffer by the sender and out of the buffer by the read.
 
 Stream buffers pass a continuous stream of bytes. Message buffers pass variable sized but discrete messages. Message buffers use stream buffers for data transfer. 
+
+#### Stream buffers
+
+Streambuffers can be created with callback send/receive functions which can be triggered on specific conditions, see example:
+```C
+void vSendCallbackFunction( StreamBufferHandle_t xStreamBuffer,
+                            BaseType_t xIsInsideISR,
+                            BaseType_t * const pxHigherPriorityTaskWoken )
+{
+    /* Insert code here which is invoked when a data write operation
+     * to the stream buffer causes the number of bytes in the buffer
+     * to be more then the trigger level.
+     * This is useful when a stream buffer is used to pass data between
+     * cores on a multicore processor. In that scenario, this callback
+     * can be implemented to generate an interrupt in the other CPU core,
+     * and the interrupt's service routine can then use the
+     * xStreamBufferSendCompletedFromISR() API function to check, and if
+     * necessary unblock, a task that was waiting for the data. */
+}
+
+void vReceiveCallbackFunction( StreamBufferHandle_t xStreamBuffer,
+                               BaseType_t xIsInsideISR,
+                               BaseType_t * const pxHigherPriorityTaskWoken )
+{
+    /* Insert code here which is invoked when data is read from a stream
+     * buffer.
+     * This is useful when a stream buffer is used to pass data between
+     * cores on a multicore processor. In that scenario, this callback
+     * can be implemented to generate an interrupt in the other CPU core,
+     * and the interrupt's service routine can then use the
+     * xStreamBufferReceiveCompletedFromISR() API function to check, and if
+     * necessary unblock, a task that was waiting to send the data. */
+}
+
+void vAFunction( void )
+{
+StreamBufferHandle_t xStreamBuffer, xStreamBufferWithCallback;
+const size_t xStreamBufferSizeBytes = 100, xTriggerLevel = 10;
+
+    /* Create a stream buffer that can hold 100 bytes and uses the
+     * functions defined using the sbSEND_COMPLETED() and
+     * sbRECEIVE_COMPLETED() macros as send and receive completed
+     * callback functions. The memory used to hold both the stream
+     * buffer structure and the data in the stream buffer is
+     * allocated dynamically. */
+    xStreamBuffer = xStreamBufferCreate( xStreamBufferSizeBytes,
+                                         xTriggerLevel );
+
+    /* Create a stream buffer that can hold 100 bytes and uses the
+     * functions vSendCallbackFunction and vReceiveCallbackFunction
+     * as send and receive completed callback functions. The memory
+     * used to hold both the stream buffer structure and the data
+     * in the stream buffer is allocated dynamically. */
+    xStreamBufferWithCallback = xStreamBufferCreateWithCallback( 
+                                    xStreamBufferSizeBytes,
+                                    xTriggerLevel,
+                                    vSendCallbackFunction,
+                                    vReceiveCallbackFunction );
+}
+```
+
+#### Message buffers
+Similarly to stream buffers, message buffers can also be created with a callback send/receive function. But there is no trigger value here which means that these functions will be triggered directly when something is inside the buffer.
+
+``` C
+void vSendCallbackFunction( MessageBufferHandle_t xMessageBuffer,
+                            BaseType_t xIsInsideISR,
+                            BaseType_t * const pxHigherPriorityTaskWoken )
+{
+    /* Insert code here which is invoked when a message is written to
+     * the message buffer.
+     * This is useful when a message buffer is used to pass messages between
+     * cores on a multicore processor. In that scenario, this callback
+     * can be implemented to generate an interrupt in the other CPU core,
+     * and the interrupt's service routine can then use the
+     * xMessageBufferSendCompletedFromISR() API function to check, and if
+     * necessary unblock, a task that was waiting for message. */
+}
+
+void vReceiveCallbackFunction( MessageBufferHandle_t xMessageBuffer,
+                               BaseType_t xIsInsideISR,
+                               BaseType_t * const pxHigherPriorityTaskWoken )
+{
+    /* Insert code here which is invoked when a message is read from a message
+     * buffer.
+     * This is useful when a message buffer is used to pass messages between
+     * cores on a multicore processor. In that scenario, this callback
+     * can be implemented to generate an interrupt in the other CPU core,
+     * and the interrupt's service routine can then use the
+     * xMessageBufferReceiveCompletedFromISR() API function to check, and if
+     * necessary unblock, a task that was waiting to send message. */
+}
+
+void vAFunction( void )
+{
+MessageBufferHandle_t xMessageBuffer, xMessageBufferWithCallback;
+const size_t xMessageBufferSizeBytes = 100;
+
+    /* Create a message buffer that can hold 100 bytes and uses the
+     * functions defined using the sbSEND_COMPLETED() and
+     * sbRECEIVE_COMPLETED() macros as send and receive completed
+     * callback functions. The memory used to hold both the message
+     * buffer structure and the data in the message buffer is
+     * allocated dynamically. */
+    xMessageBuffer = xMessageBufferCreate( xMessageBufferSizeBytes );
+
+    /* Create a message buffer that can hold 100 bytes and uses the
+     * functions vSendCallbackFunction and vReceiveCallbackFunction
+     * as send and receive completed callback functions. The memory
+     * used to hold both the message buffer structure and the data
+     * in the message buffer is allocated dynamically. */
+    xMessageBufferWithCallback = xMessageBufferCreateWithCallback( 
+                                     xMessageBufferSizeBytes,
+                                     vSendCallbackFunction,
+                                     vReceiveCallbackFunction );
+}
+```
 
 | Description | Link |
 | ------------ | --- |
