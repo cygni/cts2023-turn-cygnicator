@@ -446,7 +446,7 @@ void vTaskFunction( void * pvParameters )
 
 ## Step 1: Handle button commands
 
-Implement logic to handle the buttons TURN RIGHT, TURN LEFT, HAZZARD, BREAK
+Implement logic to handle the buttons TURN RIGHT, TURN LEFT, HAZZARD and BREAK
 
 ### Inter-task communication
 
@@ -472,7 +472,7 @@ static void vTaskCode_rx(void *parameters) {
                             );
 
     // if message received is equal to 1 then toggle the leds
-    if (received == 1)  {
+    if (rx_value == 1)  {
       vToggleLED();
     }
   }
@@ -713,7 +713,7 @@ static void prvTask2( void *pvParameters )
 }
 ```
 
-### stream/message buffers
+### Stream/Message buffers
 
 Stream buffers are an RTOS task to RTOS task, and interrupt to task communication primitives. Unlike most other FreeRTOS communications primitives, they are optimised for single reader single writer scenarios, such as passing data from an interrupt service routine to a task, or from one microcontroller core to another on dual core CPUs. Data is passed by copy - the data is copied into the buffer by the sender and out of the buffer by the read.
 
@@ -848,56 +848,256 @@ const size_t xMessageBufferSizeBytes = 100;
 | FreeRTOS Stream & Message Buffers | [link](https://www.freertos.org/RTOS-stream-message-buffers.html) |
 | FreeRTOS Stream buffers API | [link](https://www.freertos.org/RTOS-stream-buffer-API.html) |
 | FreeRTOS Message buffers API | [link](https://www.freertos.org/RTOS-message-buffer-API.html) |
+
+### Expected result
+
+When a button is pressed you should see an output with correct gpio for corresponding button: TURN RIGHT, TURN LEFT, HAZZARD and BREAK
+
 ## Step 2: TURN LEFT and TURN RIGHT
 
-**Expected results:**
+Implement 2 tasks that can handle the interrupts from TURN RIGHT/LEFT button so that you can turn the LHS/RHS leds on and off.
+
+### Expected results:
 
 * When TURN LEFT button is pressed the LHS LEDs should turn ON and RHS LEDs turn OFF. If the button is pressed again, the LHS LEDs should turn OFF
 * When TURN RIGHT button is pressed the RHS LEDs should turn on and LHS LEDs turn OFF. If the button is pressed again, the RHS LEDs should turn OFF
 
-### Syncing tasks
-Introduce FreeRTOS API on how to sync between tasks
-
 ![alt text](puml/png/step_2.png "Step 2 PUML")
 
-## Step 3: Hazzard
+### Syncing tasks
 
-**Expected results:**
+There are multiple ways of syncing between tasks but the fundamental part is the concept of periodic interrupts, **tick interrupts**, **tick period** and **tick count**. **Tick count** is the number of **tick interrupts** that have occured since the FreeRTOS application started. This is used as a measure of time. **tick period** is the time between two **tick interrupts**. This period can be configured in the FreeRTOSConfig.h file by changing **configTICK_RATE_HZ**.
+```C
+// FreeRTOSConfig.h
 
-* When HAZZARD button is pressed both LHS and RHS should turn ON at the same time. When button is pressed again, both sides should turn OFF at the same time.
+// This will give a tick period of 10 ms. 1/100 = 0,01 from f = 1/T
+#define configTICK_RATE_HZ 100
+```
+FreeRTOS stores the tick count in a data type called **TickType_t**.
+
+FreeRTOS recommends that the developers use **pdMS_TO_TICKS();** when specifying a time, since this macro is based on **configTICK_RATE_HZ**.
+
+Inter-task communication is not only used to communicate between tasks but also to sync between tasks. Either TX or RX functions has a **TickType_t xTicksToWait** parameter or both. 
+
+Some examples from FreeRTOS api
+```C
+// Queue send function protoype
+ BaseType_t xQueueSend(
+                            QueueHandle_t xQueue,
+                            const void * pvItemToQueue,
+                            TickType_t xTicksToWait
+                         );
+// Queue receive function protoype
+ BaseType_t xQueueReceive(
+                              QueueHandle_t xQueue,
+                              void *pvBuffer,
+                              TickType_t xTicksToWait
+                            );
+
+// Semaphore take function prototype
+xSemaphoreTake( SemaphoreHandle_t xSemaphore,
+                 TickType_t xTicksToWait );
+
+// Semaphore give function prototype
+xSemaphoreGive( SemaphoreHandle_t xSemaphore );
+
+// Direct to task notificaton take function prototype
+uint32_t ulTaskNotifyTake( BaseType_t xClearCountOnExit,
+                            TickType_t xTicksToWait );
+
+// Direct to task notificaton give function prototype
+BaseType_t xTaskNotifyGive( TaskHandle_t xTaskToNotify );
+
+```
+If we look at the code example for [Queue example](#queue-example) we can see that **vTaskCode_tx** uses a vTaskDelav(); Which will make the scheduler to suspend the tx task for 500 ms and then wake it up to send a message to **vTaskCode_rx**. **vTaskCode_tx** can therefore be seen as a periodic task that drives the timing of when the event should occur.
+
+Tasks can be synchronized by either using relative time or absolute time.
+```C
+/*
+vTaskDelay() specifies a wake time relative to the time at which the function
+is called, vTaskDelayUntil() specifies the absolute (exact) time at which it wishes to
+unblock.
+*/
+
+// relative time delay
+void vTaskFunction( void * pvParameters )
+{
+ /* Block for 500ms. */
+  const TickType_t xDelay = 500 / portTICK_PERIOD_MS;
+
+     for( ;; )
+     {
+         /* Simply toggle the LED every 500ms, blocking between each toggle. */
+         vToggleLED();
+         vTaskDelay( xDelay );
+     }
+}
+
+// Absolute time delay
+void vTaskFunction( void * pvParameters )
+{
+  TickType_t xLastWakeTime;
+  const TickType_t xFrequency = 10;
+
+     /*
+      xTaskGetTickCount(); will return the count of ticks since vTaskStartScheduler was called.
+     */
+
+     // Initialise the xLastWakeTime variable with the current time.
+     xLastWakeTime = xTaskGetTickCount();
+
+     for( ;; )
+     {
+         // Wait for the next cycle.
+         vToggleLED();
+         vTaskDelayUntil( &xLastWakeTime, xFrequency );
+     }
+}
+```
+
+#### Event Groups
+A recommended way from FreeRTOS is to use Event groups when the application require 2 or more tasks to synchronize. Imagine a **Task A** who has received an event and will delegate some work to **Task B**, **Task C** and **Task D**. If **Task A** can't receive a new event until the other tasks are done, then they need to synchronize with each other. An event group can be used to create a synchronisation point. To achieve this, each task are assigned an unique event bit whitin the event group. Each task sets its own unique bit and then wait for all the other bits to be set.
+
+example from FreeRTOS:
+
+```C
+
+static void vSyncingTask( void *pvParameters )
+{
+const TickType_t xMaxDelay = pdMS_TO_TICKS( 4000UL );
+const TickType_t xMinDelay = pdMS_TO_TICKS( 200UL );
+TickType_t xDelayTime;
+EventBits_t uxThisTasksSyncBit;
+const EventBits_t uxAllSyncBits = ( mainFIRST_TASK_BIT |
+mainSECOND_TASK_BIT |
+mainTHIRD_TASK_BIT );
+/* Three instances of this task are created - each task uses a different event
+bit in the synchronization. The event bit to use is passed into each task
+instance using the task parameter. Store it in the uxThisTasksSyncBit
+variable. */
+uxThisTasksSyncBit = ( EventBits_t ) pvParameters;
+for( ;; )
+{
+/* Simulate this task taking some time to perform an action by delaying for a
+pseudo random time. This prevents all three instances of this task reaching
+the synchronization point at the same time, and so allows the example’s
+behavior to be observed more easily. */
+xDelayTime = ( rand() % xMaxDelay ) + xMinDelay;
+vTaskDelay( xDelayTime );
+/* Print out a message to show this task has reached its synchronization
+point. pcTaskGetTaskName() is an API function that returns the name assigned
+to the task when the task was created. */
+vPrintTwoStrings( pcTaskGetTaskName( NULL ), "reached sync point" );
+/* Wait for all the tasks to have reached their respective synchronization
+points. */
+xEventGroupSync( /* The event group used to synchronize. */
+xEventGroup,
+/* The bit set by this task to indicate it has reached the
+synchronization point. */
+uxThisTasksSyncBit,
+/* The bits to wait for, one bit for each task taking part
+in the synchronization. */
+uxAllSyncBits,
+/* Wait indefinitely for all three tasks to reach the
+synchronization point. */
+portMAX_DELAY );
+/* Print out a message to show this task has passed its synchronization
+point. As an indefinite delay was used the following line will only be
+executed after all the tasks reached their respective synchronization
+points. */
+vPrintTwoStrings( pcTaskGetTaskName( NULL ), "exited sync point" );
+}
+}
+
+/* Definitions for the event bits in the event group. */
+#define mainFIRST_TASK_BIT ( 1UL << 0UL ) /* Event bit 0, set by the first task. */
+#define mainSECOND_TASK_BIT( 1UL << 1UL ) /* Event bit 1, set by the second task. */
+#define mainTHIRD_TASK_BIT ( 1UL << 2UL ) /* Event bit 2, set by the third task. */
+
+/* Declare the event group used to synchronize the three tasks. */
+EventGroupHandle_t xEventGroup;
+int main( void )
+{
+/* Before an event group can be used it must first be created. */
+xEventGroup = xEventGroupCreate();
+/* Create three instances of the task. Each task is given a different name,
+which is later printed out to give a visual indication of which task is
+executing. The event bit to use when the task reaches its synchronization point
+is passed into the task using the task parameter. */
+xTaskCreate( vSyncingTask, "Task 1", 1000, mainFIRST_TASK_BIT, 1, NULL );
+xTaskCreate( vSyncingTask, "Task 2", 1000, mainSECOND_TASK_BIT, 1, NULL );
+xTaskCreate( vSyncingTask, "Task 3", 1000, mainTHIRD_TASK_BIT, 1, NULL );
+/* Start the scheduler so the created tasks start executing. */
+vTaskStartScheduler();
+/* As always, the following line should never be reached. */
+for( ;; );
+return 0;
+}
+```
+#### Output from example above:
+![alt text](img/event_group.png "Output from event group example")
+
+In the image you can see that the time when the tasks reaches the sync point varies alot, but are very synchronized when exiting the sync point.
+
+## Step 3: Hazard
+
+Implement logic so that the tasks can handle the HAZARD Button
+
+### Expected results:
+
+* When HAZARD button is pressed both LHS and RHS should turn ON at the same time. When button is pressed again, both sides should turn OFF at the same time.
 
 ![alt text](puml/png/step_3.png "Step 3 PUML")
 
 ## Step 4: Buzzer (TICK/TOCK sound)
 
-During a Turn indication there is a sound being played in the car to notify the driver. Some brands wants only a "Tick" when the LEDs goes from OFF -> ON and some wants both "Tick" and "Tock". Tick when LEDs goes from OFF -> ON and Tick when led goes from ON -> OFF.
+During a Turn indication there is a sound being played in the car to notify the driver. Some brands wants only a "Tick" when the LEDs goes from OFF -> ON and some wants both "Tick" and "Tock". Tick when LEDs goes from OFF -> ON and Tock when led goes from ON -> OFF. Implement a new task that handles the sound functionality
 
 ![alt text](puml/png/step_4.png "Step 4 PUML")
 
-**Expected results:**
-* During HAZZARD/TURN LEFT/TURN RIGHT commands there should be a Tick/Tock sound being played when the corresponding LEDs turns ON/OFF
+### Expected results:
+
+During HAZZARD/TURN LEFT/TURN RIGHT commands there should be a Tick/Tock sound being played when the corresponding LEDs turns ON/OFF
 
 ## Step 5: Periodicity
 
+Until this point the LEDs are able to turn ON/OFF with button commands. However in the car, the turn indicators are periodically turning on/off during a right/left/hazard indication.
+
+Introduce a periodicity so that when either HAZARD/LEFT/RIGHT Button is pressed, corresponding leds turn on/off periodically and tick/tock sound is heard. 
+
 ![alt text](puml/png/step_5.png "Step 5 PUML")
 
-Until this point the LEDs are able to turn ON/OFF with button commands. However in the car this feature is no.....
+
 
 ### Handle shared resources
 Introduce FreeRTOS API to handle shared resources: semaphores etc.
 
-**Expected results:**
+### Expected results:
 
-## Step 6: Break button
+When RIGHT/LEFT/HAZARD Button is pressed the corresponding leds should turn on/off with a frequency of 0.5 sec. Full periodicity of 1 sec. First button press will start the indicaton, second button press will stop the indicaton.   
+
+![alt text](img/button_switch.gif "step 5")
+
+## Step 6: Brake button
+Brake indication is a very time critical feature and it is very important that the REAR leds are switch on as soon as the brake button is pressed, else it could lead to a disaster in the traffic.
+
 ![alt text](puml/png/step_6.png "Step 6 PUML")
 
-**Expected results:**
+### Expected results:
 
-## Step 7: One Task that controlls each LED row
+When brake button is pressed down, the REAR led rows should turn on and the rest of the processes should be blocked. Once brake is released the system should go back to the previous state.
+
+![alt text](img/break.gif "step 6")
+
+## Step 7 (BONUS): One Task that controlls each LED row
 ![alt text](puml/png/step_7.png "Step 7 PUML")
+
+### Expected results:
+
+Each led row is controlled by it's own task.
+
 T1 FRONT LEFT
 T2 REAR LEFT
 T3 FRONT RIGHT
 T4 REAR RIGHT
-
-**Expected results:**
+T5 BUZZER

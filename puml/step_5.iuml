@@ -11,7 +11,7 @@ binary "TASK 4" as t4
 @0
 
 @2
-t4@2 <-> @12 : {Periodicity 10}
+t4@2 <-> @12 : {0.5 sec}
 button is "HAZARD"
 button -> t4
 t4 is high
@@ -29,7 +29,7 @@ t2 is low
 t3 is low
 
 @12
-t4@12 <-> @22 : {Periodicity 10}
+t4@12 <-> @22 : {0.5 sec}
 t4 is high
 t4 -> t1 : blink left off
 t1 is high
