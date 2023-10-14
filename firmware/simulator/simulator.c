@@ -61,6 +61,8 @@ static simulator_option_t handle_input(int selected_char) {
     if (gpio_map[gpio_button_map[BUTTON_LEFT_INDICATOR]].interrupt_callback) {
       gpio_map[gpio_button_map[BUTTON_LEFT_INDICATOR]].interrupt_callback(
           gpio_button_map[BUTTON_LEFT_INDICATOR], 0);
+    } else {
+      gpio_map[gpio_button_map[BUTTON_LEFT_INDICATOR]].gpio_value = 0; // pull down
     }
     selected_option = SIM_LEFT;
 
@@ -70,6 +72,8 @@ static simulator_option_t handle_input(int selected_char) {
     if (gpio_map[gpio_button_map[BUTTON_RIGHT_INDICATOR]].interrupt_callback) {
       gpio_map[gpio_button_map[BUTTON_RIGHT_INDICATOR]].interrupt_callback(
           gpio_button_map[BUTTON_RIGHT_INDICATOR], 0);
+    } else {
+      gpio_map[gpio_button_map[BUTTON_RIGHT_INDICATOR]].gpio_value = 0; // pull down
     }
     selected_option = SIM_RIGHT;
     break;
@@ -77,6 +81,8 @@ static simulator_option_t handle_input(int selected_char) {
     if (gpio_map[gpio_button_map[BUTTON_HAZARD]].interrupt_callback) {
       gpio_map[gpio_button_map[BUTTON_HAZARD]].interrupt_callback(
           gpio_button_map[BUTTON_HAZARD], 0);
+    } else {
+      gpio_map[gpio_button_map[BUTTON_HAZARD]].gpio_value = 0; // pull down
     }
     selected_option = SIM_HAZARD;
     break;
@@ -84,6 +90,8 @@ static simulator_option_t handle_input(int selected_char) {
     if (gpio_map[gpio_button_map[BUTTON_BRAKE]].interrupt_callback) {
       gpio_map[gpio_button_map[BUTTON_BRAKE]].interrupt_callback(
           gpio_button_map[BUTTON_BRAKE], 0);
+    } else {
+      gpio_map[gpio_button_map[BUTTON_BRAKE]].gpio_value = 0; // pull down
     }
     selected_option = SIM_BRAKE;
     break;
@@ -133,6 +141,12 @@ void start_simulator(void *arg) {
   for (;;) {
     vTaskDelay(pdMS_TO_TICKS(SIMULATOR_REFRESH_RATE_MS));
 
+    // pull up buttons again (button release)
+    gpio_map[gpio_button_map[BUTTON_LEFT_INDICATOR]].gpio_value = 1;
+    gpio_map[gpio_button_map[BUTTON_RIGHT_INDICATOR]].gpio_value = 1;
+    gpio_map[gpio_button_map[BUTTON_HAZARD]].gpio_value = 1;
+    gpio_map[gpio_button_map[BUTTON_BRAKE]].gpio_value = 1;
+    
     selected_option = handle_input(wgetch(menu_win));
     if (selected_option == SIM_START) {
       simulator_started = TRUE;
