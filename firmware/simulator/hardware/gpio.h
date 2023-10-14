@@ -62,7 +62,19 @@ static void gpio_put(uint gpio, bool value) {
   gpio_map[gpio].gpio_value = value;
 }
 
-static void gpio_pull_up(uint gpio) { (void)gpio; }
+static void gpio_pull_up(uint gpio) { gpio_map[gpio].gpio_value = 1; }
+
+static void gpio_pull_down(uint gpio) { (void)gpio; }
+
+static bool gpio_is_pulled_up (uint gpio) { 
+  (void)gpio;
+  return true;
+}
+
+static bool gpio_is_pulled_down (uint gpio) {
+  (void)gpio;
+  return false;
+}
 
 static void gpio_set_function(uint gpio, enum gpio_function fn) {
   (void)gpio;
