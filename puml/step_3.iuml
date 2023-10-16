@@ -10,7 +10,7 @@ t1 is IDLE
 t2 is IDLE
 
 @50
-button is "HAZZARD"
+button is "HAZARD"
 button -> t1
 button -> t2
 t1 is HIGH
@@ -18,7 +18,7 @@ t2 is HIGH
 
 
 @160
-button is "HAZZARD"
+button is "HAZARD"
 button -> t2
 t1 is LOW
 t2 is LOW

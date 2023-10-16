@@ -29,11 +29,11 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
     - [Task scheduling](#task-scheduling)
   - [Step 2: TURN LEFT and TURN RIGHT](#step-2-turn-left-and-turn-right)
     - [Syncing tasks](#syncing-tasks)
-  - [Step 3: Hazzard](#step-3-hazzard)
+  - [Step 3: Hazard](#step-3-hazard)
   - [Step 4: Buzzer (TICK/TOCK sound)](#step-4-buzzer-ticktock-sound)
   - [Step 5: Periodicity](#step-5-periodicity)
     - [Handle shared resources](#handle-shared-resources)
-  - [Step 6: Break button](#step-6-break-button)
+  - [Step 6: Brake button](#step-6-Brake-button)
   - [Step 7: One Task that controlls each LED row](#step-7-one-task-that-controlls-each-led-row)
 
 ## Raspberry Pi Pico
@@ -112,7 +112,7 @@ Simplification of the parameters:
 | Turn left | On press | Front left & rear left headlights toggles at a fixed interval. Buzzer plays a tick sound for each flash. |
 | Turn right | On press | Front right & rear right headlights toggles at a fixed interval. Buzzer plays a tick sound for each flash. |
 | Hazard | On press | All headlights headlights toggles at a fixed interval. Buzzer plays a tick sound for each flash. |
-| Brake | On hold | All headlights are on. |
+| Brake | On hold | Only REAR RIGHT and REAR LEFT headlights are on. |
 
 
 By fixed interval in the table above we mean it should be toggled at 1Hz. For the turn indicator, this would be according to the time diagram below. Note that we don't include tock sound. Cooler car brands do this. We don't know why:
@@ -211,6 +211,7 @@ cd firmware
 ```
 
 The expected results should look like this:
+
 ![alt text](img/pcb_blinky-demo.gif "Enter programming mode")
 
 ..by default this command flashes `turn-cygnicator` workspace, which is where your implementation is located. **Refer to this flash instruction during the workshop:**
@@ -298,7 +299,7 @@ void gpio_callback(uint gpio, uint32_t events) {
 
 int main() {
   gpio_set_irq_enabled_with_callback(
-    GPIO_BUTTON_TURN_LEFT, // gpio value
+    gpio_buzzer_map[GPIO_BUTTON_TURN_LEFT], // gpio value
     GPIO_IRQ_EDGE_RISE,    // event mask
     true,                  // enabled
     &gpio_callback         // call back function
@@ -322,7 +323,7 @@ enum gpio_irq_level {
 
 //Eg:
 gpio_set_irq_enabled_with_callback(
-    GPIO_BUTTON_TURN_LEFT, // gpio value
+    gpio_buzzer_map[GPIO_BUTTON_TURN_LEFT], // gpio value
     GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, // event mask
     true,                  // enabled
     &gpio_callback         // call back function
@@ -446,11 +447,15 @@ void vTaskFunction( void * pvParameters )
 
 ## Step 1: Handle button commands
 
-Implement logic to handle the buttons TURN RIGHT, TURN LEFT, HAZZARD and BREAK
+Implement logic to handle the buttons TURN RIGHT, TURN LEFT, HAZARD and BRAKE
+
+### Expected result
+
+When a button is pressed you should see an output with correct gpio for corresponding button: TURN RIGHT, TURN LEFT, HAZARD and BRAKE
 
 ### Inter-task communication
 
-There are multiple ways/concepts that can be used for intertask communication such as queues, Binary Semaphores, Mutexes, Direct Task notification and stream/message buffers. 
+There are multiple ways/concepts that can be used for intertask communication such as Queues, Binary Semaphores, Mutexes, Direct Task notification and Stream/Message buffers. 
 
 Queues are the primary form and they can be used to send messages between tasks, and between interrupts and tasks. In most cases they are used as thread safe FIFO (First In First Out) buffers with new data being sent to the back of the queue, although data can also be sent to the front of the queue.
 
@@ -849,9 +854,6 @@ const size_t xMessageBufferSizeBytes = 100;
 | FreeRTOS Stream buffers API | [link](https://www.freertos.org/RTOS-stream-buffer-API.html) |
 | FreeRTOS Message buffers API | [link](https://www.freertos.org/RTOS-message-buffer-API.html) |
 
-### Expected result
-
-When a button is pressed you should see an output with correct gpio for corresponding button: TURN RIGHT, TURN LEFT, HAZZARD and BREAK
 
 ## Step 2: TURN LEFT and TURN RIGHT
 
@@ -956,7 +958,7 @@ void vTaskFunction( void * pvParameters )
 ```
 
 #### Event Groups
-A recommended way from FreeRTOS is to use Event groups when the application require 2 or more tasks to synchronize. Imagine a **Task A** who has received an event and will delegate some work to **Task B**, **Task C** and **Task D**. If **Task A** can't receive a new event until the other tasks are done, then they need to synchronize with each other. An event group can be used to create a synchronisation point. To achieve this, each task are assigned an unique event bit whitin the event group. Each task sets its own unique bit and then wait for all the other bits to be set.
+A recommended way from FreeRTOS is to use Event groups when the application require 2 or more tasks to synchronize. Imagine a **Task A** who has received an event and will delegate some work to **Task B** and **Task C**. If **Task A** can't receive a new event until the other tasks are done, then they need to synchronize with each other. An event group can be used to create a synchronisation point. To achieve this, each task are assigned an unique event bit whitin the event group. Each task sets its own unique bit and then wait for all the other bits to be set.
 
 example from FreeRTOS:
 
@@ -1057,7 +1059,7 @@ During a Turn indication there is a sound being played in the car to notify the 
 
 ### Expected results:
 
-During HAZZARD/TURN LEFT/TURN RIGHT commands there should be a Tick/Tock sound being played when the corresponding LEDs turns ON/OFF
+During HAZARD/TURN LEFT/TURN RIGHT commands there should be a Tick/Tock sound being played when the corresponding LEDs turns ON/OFF
 
 ## Step 5: Periodicity
 
@@ -1074,12 +1076,14 @@ Introduce FreeRTOS API to handle shared resources: semaphores etc.
 
 ### Expected results:
 
-When RIGHT/LEFT/HAZARD Button is pressed the corresponding leds should turn on/off with a frequency of 0.5 sec. Full periodicity of 1 sec. First button press will start the indicaton, second button press will stop the indicaton.   
+When RIGHT/LEFT/HAZARD Button is pressed the corresponding leds should turn on/off with a frequency of 0.5 sec. Full periodicity of 1 sec. First button press will start the indicaton, second button press will stop the indicaton, if it is the same button. If you switch from LEFT to RIGHT, then the lights should change from LHS to RHS and not turn of the indication completley.   
+
+Example:
 
 ![alt text](img/button_switch.gif "step 5")
 
 ## Step 6: Brake button
-Brake indication is a very time critical feature and it is very important that the REAR leds are switch on as soon as the brake button is pressed, else it could lead to a disaster in the traffic.
+Brake indication is a very time critical feature and it is very important that the REAR leds are switched on as soon as the brake button is pressed, else it could lead to a disaster in the traffic.
 
 ![alt text](puml/png/step_6.png "Step 6 PUML")
 
@@ -1096,8 +1100,8 @@ When brake button is pressed down, the REAR led rows should turn on and the rest
 
 Each led row is controlled by it's own task.
 
-T1 FRONT LEFT
-T2 REAR LEFT
-T3 FRONT RIGHT
-T4 REAR RIGHT
-T5 BUZZER
+* T1 FRONT LEFT
+* T2 REAR LEFT
+* T3 FRONT RIGHT
+* T4 REAR RIGHT
+* T5 BUZZER
