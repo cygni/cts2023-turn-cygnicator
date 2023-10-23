@@ -287,8 +287,9 @@ firmware/inc/FreeRTOSConfig.h
 
 Now the actual workshop starts
 
-## Pico SDK API - Interrupt Handling
+## Pico SDK API - Interrupt Handling or Polling
 
+### Interrupt Handling
 With the pico SDK you can configure IRQ handling for GPIO. In the example bellow we have configurad an IRQ for button TURN_LEFT which will print "Received an interrupt!" each time we click the button.
 
 ```C
@@ -332,6 +333,24 @@ gpio_set_irq_enabled_with_callback(
 ```
 
 see reference: [gpio_set_irq_enabled_with_callback](https://www.raspberrypi.com/documentation/pico-sdk/hardware.html#ga6165f07f4b619dd08ea6dc97d069e78a)
+
+### Polling
+
+If you don't want an interrupt based solution you could always use polling. Modern systems usually supports IRQ but sometimes you have no other option than to use polling.
+
+example of a polling function that polls the gpio every 20 ms. This can be combined with FreeRTOS Tasks which will be described later during the workshop.
+
+```C
+
+void poll_gpio(uint gpio) {
+  uint gpio_value = 0;
+  while (1) {
+    sleep_ms(20);
+    gpio_value = gpio_get(gpio);
+    printf("value: %d", gpio_value);
+  }
+}
+```
 
 ### Cygnicator API
 
