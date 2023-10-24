@@ -1,8 +1,13 @@
+// Pico libs
+#include "pico/stdio.h"
+#include "hardware/gpio.h"
+
 // FreeRTOS libs
 #include <FreeRTOS.h>
 #include <semphr.h>
 #include <task.h>
 
+//Workshop libs
 #include "cygnicator_headlights.h"
 
 /* 

@@ -1,10 +1,11 @@
-// FreeRTOS libs
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 
 #include "pico/stdio.h"
 #include "pico/time.h"
 #include "pico/types.h"
+
+// FreeRTOS libs
 #include <FreeRTOS.h>
 
 #include "cygnicator_headlights.h"
