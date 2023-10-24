@@ -3,7 +3,7 @@
 #include <semphr.h>
 #include <task.h>
 
-#include "pico/gpio.h"
+#include "hardware/gpio.h"
 #include "pico/stdlib.h"
 
 const uint LED_PIN = 2;
