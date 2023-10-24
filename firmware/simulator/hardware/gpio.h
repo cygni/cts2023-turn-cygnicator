@@ -61,7 +61,13 @@ static bool gpio_get(uint gpio) { return gpio_map[gpio].gpio_value; }
 static void gpio_put(uint gpio, bool value) {
   gpio_map[gpio].gpio_value = value;
 }
-
+static void gpio_put_masked(uint32_t mask, bool value) {
+  for (int i = 0; i < 32; i++) {
+    if((mask & (1<<i)) != 0) {
+      gpio_put(i, value);
+    }
+  }
+}
 static void gpio_pull_up(uint gpio) { gpio_map[gpio].gpio_value = 1; }
 
 static void gpio_pull_down(uint gpio) { (void)gpio; }

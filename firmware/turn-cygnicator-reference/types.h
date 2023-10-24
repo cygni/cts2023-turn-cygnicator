@@ -5,7 +5,7 @@ typedef enum {
     IDLE = 0, 
     TURN_RIGHT = 1,
     TURN_LEFT = 2,
-    HAZZARD = 3,
+    HAZARD = 3,
     BRAKE_LIGHTS = 4,
     ERROR = 5,
 } states_t;
