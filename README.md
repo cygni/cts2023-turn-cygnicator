@@ -263,7 +263,7 @@ The output file *.UF2 can also be flahed by moving it into Pico when it shows up
 ![alt text](img/drag_drop.png "moving UF2 to mass-storage")
 
 ## Building for the Simulator
-By default, running build.sh builds for the Pico hardware. Included in the workshop repo is a basic simulator that can be used for testing, instead of flashing directly to the real hardware.
+By default, running build.sh builds for the Pico hardware. Included in the workshop repo is a basic simulator that can be used for testing instead of flashing directly to the real hardware.
 To enable building for the simulator, open CMakeLists.txt in the firmware folder. At the top, it has these include's.
 ```bash
 include(${CMAKE_CURRENT_SOURCE_DIR}/pico_sdk_import.cmake)
@@ -278,15 +278,15 @@ If you replace the pico_sdk and FreeRTOS kernel import with simulator.cmake, the
 include(${CMAKE_CURRENT_SOURCE_DIR}/simulator.cmake)
 ```
 
-Run build.sh, and you should see that your simulator files are build
+Run build.sh, and you should see that your simulator files are built
 ```
 === Simulator Output Files ===
 ./build/turn-cygnicator/turn-cygnicator
 ```
 
 ## Running the Simulator
-The simulator uses the real FreeRTOS kernel, so the scheduling works in the same way as on hardware.
-To run your solution in the firmware, run the program you built in the docker container. If standing in the firmware/ directory:
+The simulator uses the real FreeRTOS kernel so the scheduling works in the same way as on hardware.
+To run your solution in the simulator, run the program you built in the docker container. If standing in the firmware/ directory:
 
 ```bash
 docker run --rm  -v "$(pwd)":"$(pwd)" -w "$(pwd)" -it rpisdk:latest ./build/turn-cygnicator/turn-cygnicator
