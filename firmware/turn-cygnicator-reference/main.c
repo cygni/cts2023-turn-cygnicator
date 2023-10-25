@@ -33,6 +33,7 @@ void stop_tone() { pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], 0); }
 
 void ledRightToLeft(uint8_t const *leds, TickType_t duration_ticks)
 {
+    // turn leds floating on
     for (uint8_t i = 0; i < HEADLIGHT_SIZE_LIMIT; i++)
     {
         if (uxSemaphoreGetCount(x_break_semaphore) > 0)
@@ -43,13 +44,23 @@ void ledRightToLeft(uint8_t const *leds, TickType_t duration_ticks)
         uint8_t led = leds[i];
         gpio_put(led, true);
         vTaskDelay(duration_ticks);
+    }
+    // turn leds off
+    for (uint8_t i = 0; i < HEADLIGHT_SIZE_LIMIT; i++)
+    {
+        if (uxSemaphoreGetCount(x_break_semaphore) > 0)
+        {
+            printf("Semafor not ledig - wait for next turn \n");
+            break;
+        }
+        uint8_t led = leds[i];
         gpio_put(led, false);
-        vTaskDelay(duration_ticks);
     }
 }
 
 void brake_leds(bool isOn)
 {
+    gpio_put_masked(gpio_output_pins_mask, false);
     for (uint8_t i = 2; i < HEADLIGHT_SIZE_LIMIT; i++)
     {
         for (uint8_t u = 0; u < HEADLIGHT_SIZE_LIMIT; u++)
@@ -58,10 +69,12 @@ void brake_leds(bool isOn)
             gpio_put(led, isOn);
         }
     }
+    
 }
 
 void ledLeftToRight(uint8_t const *leds, TickType_t duration_ticks)
 {
+    // turn leds floating on
     for (int8_t i = HEADLIGHT_SIZE_LIMIT -1; i > -1; i--)
     {
         if (uxSemaphoreGetCount(x_break_semaphore) > 0)
@@ -72,10 +85,20 @@ void ledLeftToRight(uint8_t const *leds, TickType_t duration_ticks)
         uint8_t led = leds[i];
         gpio_put(led, true);
         vTaskDelay(duration_ticks);
+    }
+    // turn leds off
+    for (int8_t i = HEADLIGHT_SIZE_LIMIT -1; i > -1; i--)
+    {
+        if (uxSemaphoreGetCount(x_break_semaphore) > 0)
+        {
+            printf("Semafor not ledig - wait for next turn \n");
+            break;
+        }
+        uint8_t led = leds[i];
         gpio_put(led, false);
-        vTaskDelay(duration_ticks);
     }
 }
+
 
 static void gpio_callback(uint gpio, uint32_t events)
 {
@@ -83,8 +106,12 @@ static void gpio_callback(uint gpio, uint32_t events)
     BaseType_t xHigherPriorityTaskWoken;
     states_t next_state = IDLE;
     UBaseType_t uxSavedInterruptStatus;
-    
+
     uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR(); 
+    /* 
+        Cant use the gpio_button_map here for reason:
+        "case label does not reduce to an integer constant"
+    */
     switch (gpio)
     {
     case gpio_btn_left_indicator:
@@ -94,7 +121,7 @@ static void gpio_callback(uint gpio, uint32_t events)
         next_state = TURN_RIGHT;
         break;
     case gpio_btn_hazard:
-        next_state = HAZZARD;
+        next_state = HAZARD;
         break;
     case gpio_btn_brake:
         break;
@@ -208,12 +235,12 @@ void generic_worker(void *params)
             {
             case FRONT_LEFT:
             case REAR_LEFT:
-                ledRightToLeft(gpio_headlight_map[work.package_parameter.headlight_index], pdMS_TO_TICKS(25));
+                ledRightToLeft(gpio_headlight_map[work.package_parameter.headlight_index], pdMS_TO_TICKS(50));
                 break;
 
             case FRONT_RIGHT:
             case REAR_RIGHT:
-                ledLeftToRight(gpio_headlight_map[work.package_parameter.headlight_index], pdMS_TO_TICKS(25));
+                ledLeftToRight(gpio_headlight_map[work.package_parameter.headlight_index], pdMS_TO_TICKS(50));
                 break;
             default:
                 printf("invalid package type %u\n", work.package_type);
@@ -254,6 +281,7 @@ void state_machine(void *params)
 
         if (current_state == IDLE) {
             if (xQueueReceive(state_queue, &next_state, portMAX_DELAY) == pdTRUE) {
+                printf("state in idle switch[%d -> %d] \n",(int)current_state, (int)next_state);
                 current_state = next_state;
                 current_time = xTaskGetTickCount();
             } else
@@ -263,6 +291,7 @@ void state_machine(void *params)
             
         } else {
             if (xQueueReceive(state_queue, &next_state, 0) == pdTRUE ) {
+                printf("state in running switch[%d -> %d] \n",(int)current_state, (int)next_state);
                 current_state = current_state == next_state ? IDLE : next_state;
                 current_time = xTaskGetTickCount();
                 xQueueReset(package_queue);
@@ -270,7 +299,7 @@ void state_machine(void *params)
 
         }
         
-        printf("current state[%d -> %d] \n",(int)current_state, (int)next_state);
+        printf("current state[%d] items in queue \n",(int)current_state);
         switch (current_state)
         {
         // check break first since that cycle time will be different from ordinary blink cycle time
@@ -308,7 +337,7 @@ void state_machine(void *params)
             break;
         }
 
-        case HAZZARD:
+        case HAZARD:
         {
             work_package_t front_left_package = create_headlight_task(FRONT_LEFT);
             work_package_t rear_left_package = create_headlight_task(REAR_LEFT);
@@ -329,6 +358,7 @@ void state_machine(void *params)
             break;
         }
         case IDLE:
+            xQueueReset(package_queue);
             printf("IDLE\n");
         break;
         default:
@@ -338,7 +368,7 @@ void state_machine(void *params)
         }
 
         // Not sure how long to wait here..
-        vTaskDelayUntil(&current_time, pdMS_TO_TICKS(300));
+        vTaskDelayUntil(&current_time, pdMS_TO_TICKS(500));
     }
 }
 
