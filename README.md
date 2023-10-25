@@ -118,7 +118,7 @@ Notice that the lights are led segments with 4 individual leds for each light. T
 | Brake | On hold | Only REAR RIGHT and REAR LEFT headlights are on. |
 
 
-By fixed interval in the table above we mean it should be toggled at 1Hz. For the turn indicator, this would be according to the time diagram below. Note that we don't include tock sound. Cooler car brands do this. We don't know why:
+By fixed interval in the table above we mean it should be toggled at 2Hz. For the turn indicator, this would be according to the time diagram below. Note that we don't include tock sound. Cooler car brands do this. We don't know why:
 
 ![alt text](puml/png/tick_tock.png "Tick tock PUML")
 
@@ -129,7 +129,7 @@ In a normal car, when the hazard is on and the brake is issued, the hazard conti
 
 # Workshop preparation
 
-There are some preparations that it's good to do before the workshop begins.
+There are some preparations that we recommend you do before the workshop begins.
 
 ## Preparation
 
@@ -789,8 +789,8 @@ void vReceiveCallbackFunction( StreamBufferHandle_t xStreamBuffer,
 
 void vAFunction( void )
 {
-StreamBufferHandle_t xStreamBuffer, xStreamBufferWithCallback;
-const size_t xStreamBufferSizeBytes = 100, xTriggerLevel = 10;
+  StreamBufferHandle_t xStreamBuffer, xStreamBufferWithCallback;
+  const size_t xStreamBufferSizeBytes = 100, xTriggerLevel = 10;
 
     /* Create a stream buffer that can hold 100 bytes and uses the
      * functions defined using the sbSEND_COMPLETED() and
@@ -848,8 +848,8 @@ void vReceiveCallbackFunction( MessageBufferHandle_t xMessageBuffer,
 
 void vAFunction( void )
 {
-MessageBufferHandle_t xMessageBuffer, xMessageBufferWithCallback;
-const size_t xMessageBufferSizeBytes = 100;
+  MessageBufferHandle_t xMessageBuffer, xMessageBufferWithCallback;
+  const size_t xMessageBufferSizeBytes = 100;
 
     /* Create a message buffer that can hold 100 bytes and uses the
      * functions defined using the sbSEND_COMPLETED() and
@@ -996,49 +996,49 @@ example from FreeRTOS:
 
 static void vSyncingTask( void *pvParameters )
 {
-const TickType_t xMaxDelay = pdMS_TO_TICKS( 4000UL );
-const TickType_t xMinDelay = pdMS_TO_TICKS( 200UL );
-TickType_t xDelayTime;
-EventBits_t uxThisTasksSyncBit;
-const EventBits_t uxAllSyncBits = ( mainFIRST_TASK_BIT |
-mainSECOND_TASK_BIT |
-mainTHIRD_TASK_BIT );
-/* Three instances of this task are created - each task uses a different event
-bit in the synchronization. The event bit to use is passed into each task
-instance using the task parameter. Store it in the uxThisTasksSyncBit
-variable. */
-uxThisTasksSyncBit = ( EventBits_t ) pvParameters;
-for( ;; )
-{
-/* Simulate this task taking some time to perform an action by delaying for a
-pseudo random time. This prevents all three instances of this task reaching
-the synchronization point at the same time, and so allows the example’s
-behavior to be observed more easily. */
-xDelayTime = ( rand() % xMaxDelay ) + xMinDelay;
-vTaskDelay( xDelayTime );
-/* Print out a message to show this task has reached its synchronization
-point. pcTaskGetTaskName() is an API function that returns the name assigned
-to the task when the task was created. */
-vPrintTwoStrings( pcTaskGetTaskName( NULL ), "reached sync point" );
-/* Wait for all the tasks to have reached their respective synchronization
-points. */
-xEventGroupSync( /* The event group used to synchronize. */
-xEventGroup,
-/* The bit set by this task to indicate it has reached the
-synchronization point. */
-uxThisTasksSyncBit,
-/* The bits to wait for, one bit for each task taking part
-in the synchronization. */
-uxAllSyncBits,
-/* Wait indefinitely for all three tasks to reach the
-synchronization point. */
-portMAX_DELAY );
-/* Print out a message to show this task has passed its synchronization
-point. As an indefinite delay was used the following line will only be
-executed after all the tasks reached their respective synchronization
-points. */
-vPrintTwoStrings( pcTaskGetTaskName( NULL ), "exited sync point" );
-}
+  const TickType_t xMaxDelay = pdMS_TO_TICKS( 4000UL );
+  const TickType_t xMinDelay = pdMS_TO_TICKS( 200UL );
+  TickType_t xDelayTime;
+  EventBits_t uxThisTasksSyncBit;
+  const EventBits_t uxAllSyncBits = ( mainFIRST_TASK_BIT |
+                                    mainSECOND_TASK_BIT |
+                                    mainTHIRD_TASK_BIT );
+  /* Three instances of this task are created - each task uses a different event
+  bit in the synchronization. The event bit to use is passed into each task
+  instance using the task parameter. Store it in the uxThisTasksSyncBit
+  variable. */
+  uxThisTasksSyncBit = ( EventBits_t ) pvParameters;
+  for( ;; )
+  {
+    /* Simulate this task taking some time to perform an action by delaying for a
+    pseudo random time. This prevents all three instances of this task reaching
+    the synchronization point at the same time, and so allows the example’s
+    behavior to be observed more easily. */
+    xDelayTime = ( rand() % xMaxDelay ) + xMinDelay;
+    vTaskDelay( xDelayTime );
+    /* Print out a message to show this task has reached its synchronization
+    point. pcTaskGetTaskName() is an API function that returns the name assigned
+    to the task when the task was created. */
+    vPrintTwoStrings( pcTaskGetTaskName( NULL ), "reached sync point" );
+    /* Wait for all the tasks to have reached their respective synchronization
+    points. */
+    xEventGroupSync( /* The event group used to synchronize. */
+    xEventGroup,
+    /* The bit set by this task to indicate it has reached the
+    synchronization point. */
+    uxThisTasksSyncBit,
+    /* The bits to wait for, one bit for each task taking part
+    in the synchronization. */
+    uxAllSyncBits,
+    /* Wait indefinitely for all three tasks to reach the
+    synchronization point. */
+    portMAX_DELAY );
+    /* Print out a message to show this task has passed its synchronization
+    point. As an indefinite delay was used the following line will only be
+    executed after all the tasks reached their respective synchronization
+    points. */
+    vPrintTwoStrings( pcTaskGetTaskName( NULL ), "exited sync point" );
+  }
 }
 
 /* Definitions for the event bits in the event group. */
@@ -1050,21 +1050,21 @@ vPrintTwoStrings( pcTaskGetTaskName( NULL ), "exited sync point" );
 EventGroupHandle_t xEventGroup;
 int main( void )
 {
-/* Before an event group can be used it must first be created. */
-xEventGroup = xEventGroupCreate();
-/* Create three instances of the task. Each task is given a different name,
-which is later printed out to give a visual indication of which task is
-executing. The event bit to use when the task reaches its synchronization point
-is passed into the task using the task parameter. */
-xTaskCreate( vSyncingTask, "Task 1", 1000, mainFIRST_TASK_BIT, 1, NULL );
-xTaskCreate( vSyncingTask, "Task 2", 1000, mainSECOND_TASK_BIT, 1, NULL );
-xTaskCreate( vSyncingTask, "Task 3", 1000, mainTHIRD_TASK_BIT, 1, NULL );
-/* Start the scheduler so the created tasks start executing. */
-vTaskStartScheduler();
-/* As always, the following line should never be reached. */
-for( ;; );
-return 0;
-}
+  /* Before an event group can be used it must first be created. */
+  xEventGroup = xEventGroupCreate();
+  /* Create three instances of the task. Each task is given a different name,
+  which is later printed out to give a visual indication of which task is
+  executing. The event bit to use when the task reaches its synchronization point
+  is passed into the task using the task parameter. */
+  xTaskCreate( vSyncingTask, "Task 1", 1000, mainFIRST_TASK_BIT, 1, NULL );
+  xTaskCreate( vSyncingTask, "Task 2", 1000, mainSECOND_TASK_BIT, 1, NULL );
+  xTaskCreate( vSyncingTask, "Task 3", 1000, mainTHIRD_TASK_BIT, 1, NULL );
+  /* Start the scheduler so the created tasks start executing. */
+  vTaskStartScheduler();
+  /* As always, the following line should never be reached. */
+  for( ;; );
+    return 0;
+  }
 ```
 #### Output from example above:
 ![alt text](img/event_group.png "Output from event group example")
@@ -1083,13 +1083,13 @@ Implement logic so that the tasks can handle the HAZARD Button
 
 ## Step 4: Buzzer (TICK/TOCK sound)
 
-During a Turn indication there is a sound being played in the car to notify the driver. Some brands wants only a "Tick" when the LEDs goes from OFF -> ON and some wants both "Tick" and "Tock". Tick when LEDs goes from OFF -> ON and Tock when led goes from ON -> OFF. Implement a new task that handles the sound functionality
+During a Turn indication there is a sound being played in the car to notify the driver. Some brands wants only a "Tick" when the LEDs goes from OFF -> ON and some wants both "Tick" and "Tock". Tick when LEDs goes from OFF -> ON and Tock when led goes from ON -> OFF. Implement a new task that handles the sound functionality.
 
 ![alt text](puml/png/step_4.png "Step 4 PUML")
 
 ### Expected results:
 
-During HAZARD/TURN LEFT/TURN RIGHT commands there should be a Tick/Tock sound being played when the corresponding LEDs turns ON/OFF
+During HAZARD/TURN LEFT/TURN RIGHT commands there should be a sound being played when the corresponding LEDs are toggled. You can decide yourself if you want only Tick or both Tick/Tock sounds.
 
 ## Step 5: Periodicity
 
@@ -1100,13 +1100,12 @@ Introduce a periodicity so that when either HAZARD/LEFT/RIGHT Button is pressed,
 ![alt text](puml/png/step_5.png "Step 5 PUML")
 
 
-
 ### Handle shared resources
 Introduce FreeRTOS API to handle shared resources: semaphores etc.
 
 ### Expected results:
 
-When RIGHT/LEFT/HAZARD Button is pressed the corresponding leds should turn on/off with a frequency of 0.5 sec. Full periodicity of 1 sec. First button press will start the indicaton, second button press will stop the indicaton, if it is the same button. If you switch from LEFT to RIGHT, then the lights should change from LHS to RHS and not turn of the indication completley.   
+When RIGHT/LEFT/HAZARD Button is pressed the corresponding leds should turn on/off with a frequency of 0.5 sec. First button press will start the indicaton, second button press will stop the indicaton, if it is the same button. If you switch from LEFT to RIGHT, then the lights should change from LHS to RHS and not turn of the indication completley.   
 
 Example:
 
