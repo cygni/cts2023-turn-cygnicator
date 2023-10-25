@@ -10,7 +10,7 @@ hide time-axis
 @0
 
 @2
-t4@2 <-> @12 : {Periodicity 10}
+t4@2 <-> @12 : {Periodicity 0.5}
 button is "HAZARD"
 button -> t4
 t4 is high
@@ -51,12 +51,12 @@ t2 is low : Blocked
 
 @18
 button is "HAZARD"
-t4@18 <-> @28 : {Periodicity 10}
+t4@18 <-> @28 : {Periodicity 0.5}
 t5 is low
 t4 is high
-t4 -> t1 : blink left
+t4 -> t1 : blink left on
 t1 is high
-t4 -> t2 : blink right
+t4 -> t2 : blink right on
 t2 is high
 t4 -> t3 : Tick
 t3 is high

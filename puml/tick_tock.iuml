@@ -12,7 +12,7 @@ sound is LOW
 light is LOW
 
 @50
-@50 <-> @+100 : {1s}
+@50 <-> @+100 : {0,5s}
 turn is "TICK"
 sound is HIGH
 light is HIGH
@@ -28,7 +28,7 @@ light is LOW
 light is LOW
 
 @150
-@150 <-> @+100 : {1s}
+@150 <-> @+100 : {0,5s}
 turn is "TICK"
 sound is HIGH
 light is HIGH

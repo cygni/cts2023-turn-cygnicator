@@ -12,7 +12,7 @@ hide time-axis
 @0
 
 @2
-t6@2 <-> @5 : {Periodicity 0.5s}
+t6@2 <-> @8 : {Periodicity 0.5s}
 button is "TURN LEFT"
 t6 is high
 t6 -> t1 : Turn FL on
@@ -30,7 +30,6 @@ t1 is low
 t2 is low
 
 @5
-t6@5 <-> @8 : {Periodicity 0.5s}
 t6 is high
 t6 -> t1 : Turn FL off
 t1 is high
@@ -65,7 +64,7 @@ t3 is low
 t4 is low
 @10
 button is "HAZARD"
-t6@10 <-> @13 : {Periodicity 0.5s}
+t6@10 <-> @16 : {Periodicity 0.5s}
 t6 is high
 t6 -> t5 : Tick
 t5 is high
@@ -87,7 +86,6 @@ t3 is low
 t4 is low
 
 @13
-t6@13 <-> @16 : {Periodicity 0.5s}
 t6 is high
 t6 -> t5 : Tock
 t5 is high
