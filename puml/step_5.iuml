@@ -28,7 +28,39 @@ t1 is low
 t2 is low
 t3 is low
 
+@7
+t4 is high
+t4 -> t1 : blink left off
+t1 is high
+t4 -> t2 : blink right off
+t2 is high
+t4 -> t3 : Tock
+t3 is high
+
+@8
+t4 is low
+@9
+t1 is low
+t2 is low
+t3 is low
+
 @12
+t4@12 <-> @22 : {0.5 sec}
+t4 is high
+t4 -> t1 : blink left on
+t1 is high
+t4 -> t2 : blink right on
+t2 is high
+t4 -> t3 : Tick
+t3 is high
+@13 
+t4 is low
+@14
+t1 is low
+t2 is low
+t3 is low
+
+@17
 t4@12 <-> @22 : {0.5 sec}
 t4 is high
 t4 -> t1 : blink left off
@@ -37,9 +69,9 @@ t4 -> t2 : blink right off
 t2 is high
 t4 -> t3 : Tock
 t3 is high
-@13 
+@18
 t4 is low
-@14
+@19
 t1 is low
 t2 is low
 t3 is low
