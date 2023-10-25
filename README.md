@@ -38,11 +38,11 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
 
 ## Raspberry Pi Pico
 
-To realize the project, we will use a Raspberry Pi Pico. The Pico is based on the RP2040 microcontroller, which has a dual-core Arm Cortex-M0 CPU at 133Mhz (though clocked at 125Mhz by default). It has 264kB RAM and 2MB flash memory. The rest of the specifications can be read [here](https://www.raspberrypi.com/documentation/microcontrollers/rp2040.html). Pico has a logic voltage of 3.3V, which means that a GPIO pin that is high will have a voltage of 3.3V.
+To realize the project, we will use a Raspberry Pi Pico. The Pico is based on the RP2040 microcontroller, which has a dual-core Arm Cortex-M0 CPU at 133Mhz (though clocked at 125Mhz by default). It has 264kB RAM and 2MB flash memory. The rest of the specifications can be read [here](https://www.raspberrypi.com/documentation/microcontrollers/rp2040.html). Pico has a logic voltage of 3.3V, which means that a pin that is high - i.e. has it's output enabled - will have a voltage of 3.3V.
 
-The board has 28 GPIO pins. GPIO pins are software-controlled connectors that can be used as input or output. Some pins can be used either as GPIO or for other functions such as I2C or PWM to configure it.
+The board has 28 GPIO pins. GPIO stands for general purpose input/output. GPIO pins are software-controlled connectors that can be used as input or output. Some pins can be used either as GPIO or for other functions such as I2C or PWM if you configure them for it.
 
-NOTE: When we refer to GPIO pins, we mean what is written in the green boxes in the reference image of the Picon, which corresponds to another physical pin (the gray boxes).
+NOTE: When we refer to GPIO pins by id, we mean the the id's written in the green boxes in the reference image of the Pico. Each GPIO id corresponds to another id (physical pin number, the gray boxes), which has a different numbering scheme.
 
 ![alt text](img/pico-pinout.png "RPI Pico pinout")
 
@@ -51,7 +51,7 @@ Some interesting pins:
 - VBUS is connected directly to the micro-USB port and measures 5V when you have a USB adapter connected.
 - VSYS is connected to VBUS via a diode. It is possible to drive the Pico directly by soldering a 1.8V to 5.5V voltage source to VSYS if you don't like USB. A Switching Mode Power Supply then converts the input voltage to 3.3V which powers the Pico.
 - The 3V3_EN(able) pin can connect to ground to turn off the voltage converter, and then the Pico stops.
-- The 3V3 pin is connected to the 3.3V operating voltage and can be used to drive components, the datasheet recommends not to draw more than 300mA.
+- The 3V3 pin is connected to the 3.3V operating voltage and can be used to drive components, the datasheet recommends not to draw more than 300mA from the 3v3 rail.
 The RUN pin can be used to restart the Pico, if connected to ground.
 
 Others are described in the data sheet if you are interested.
@@ -94,16 +94,19 @@ Skip this section if you are not interested in which GPIO is connected to what.
 | 21   | IN / PULL-UP| HAZARD_BTN |
 | 22   | OUT / PWM | BUZZER |
 
-Raspberry Pi Pico is not driving all LEDs directly, instead a MOSFET transistor is used for each LED to drive each individual LED using the +5V from the USB bus. This setup makes it possible for the 3.3V GPIO to control an LED with +5V forward voltage.
+Raspberry Pi Pico is not driving all LEDs directly, instead a MOSFET transistor is used for each LED to drive each individual LED using the +5V from the USB bus. A MOSFET is a type of transistor that controls the flow of electrical current by varying the voltage applied to a gate terminal. This setup makes it possible for the 3.3V GPIO to control an LED with +5V forward voltage. 
 
 ![alt text](img/pcb_led_gate.png "LED setup")
 
-Simplification of the parameters:
+As you see in the picture, there are three resistors for each MOSFET. Simplification of the parameters:
 - R_LED regulates the current that drives the LED i.e. the brightness
 - R_PULLDOWN makes sure that the gate is closed by default. It "pulls" down the gate voltage to ground.
 - R_GATE regulates the speed at which the MOSFET gate opens. (Other parameters affect this as well e.g. input impedance, internal GPIO resistors etc.)
 
 ## Workshop goals
+
+The goal of the workshop is to implement the telltale for the car on the PCB, with the buttons controlling the behaviour as listed in the table below.
+Notice that the lights are led segments with 4 individual leds for each light. That is so that we can implement sweeping indicator lights, like on the new [Volvo EX90](https://www.youtube.com/shorts/eO_5jhUtqR8).
 
 ![alt text](img/pcb_headlights.png "PCB headlight rows")
 
@@ -126,11 +129,10 @@ In a normal car, when the hazard is on and the brake is issued, the hazard conti
 
 # Workshop preparation
 
-Prepare the workshop
+There are some preparations that it's good to do before the workshop begins.
 
 ## Preparation
 
-This section is where you prepare and set up your development environment.
 At the end of this section, you should be able to know where to add changes, and how to build and flash. To test the circuit board, we have provided a blinky code example that is going to be flashed onto the board.
 
 Important folders and files:
@@ -160,13 +162,15 @@ firmware/inc/FreeRTOSConfig.h
 
 ## Prepare the development environment
 
-In other words, build the docker image (`firmware/docker/Dockerfile`) that contains the FreeRTOS kernel, pico SDK, picotool and other tools/libraries that are needed.
+The first step is to build the docker image (`firmware/docker/Dockerfile`) that contains the FreeRTOS kernel, pico SDK, picotool and other tools/libraries that are needed.
 
 Run this command in the root folder of this repository:
 `docker build --build-arg UID="$(id -u)" -t rpisdk:latest docker/` or run
 `build_docker.sh`
 
 It takes a couple of minutes to download all dependencies, this command should only be run once.
+
+TODO: Vi borde förbygga denna och hosta på nån docker repository.
 
 ## How to build an image
 
@@ -258,30 +262,37 @@ The output file *.UF2 can also be flahed by moving it into Pico when it shows up
 
 ![alt text](img/drag_drop.png "moving UF2 to mass-storage")
 
-Important folders and files:
+## Building for the Simulator
+By default, running build.sh builds for the Pico hardware. Included in the workshop repo is a basic simulator that can be used for testing instead of flashing directly to the real hardware.
+To enable building for the simulator, open CMakeLists.txt in the firmware folder. At the top, it has these include's.
 ```bash
-# Your workspace, feel free to add more workspaces if needed.
-firmware/turn-cygnicator
-
-# ..we suggest you work in the same workspace throughout the workshop
-# since every step builds on the previous one.
-
-# Main entrypoint to your solution
-firmware/turn-cygnicator/main.c
-
-# Binary image that will be flashed onto the Raspberry Pi Pico
-firmware/turn-cygnicator/turn-cygnicator.uf2
-
-# Cygni turnindicator (Cygnicator) APIs
-firmware/inc
-
-# FreeRTOS kernel, you shouldn't need to touch this
-firmware/lib/FreeRTOS-Kernel
-
-# FreeRTOS configuration file for this project, you shouldn't need to touch this
-firmware/inc/FreeRTOSConfig.h
-
+include(${CMAKE_CURRENT_SOURCE_DIR}/pico_sdk_import.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS_Kernel_import.cmake)
+#include(${CMAKE_CURRENT_SOURCE_DIR}/simulator.cmake)
 ```
+If you replace the pico_sdk and FreeRTOS kernel import with simulator.cmake, the solution will be built for the simulator instead.
+
+```bash
+#include(${CMAKE_CURRENT_SOURCE_DIR}/pico_sdk_import.cmake)
+#include(${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS_Kernel_import.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/simulator.cmake)
+```
+
+Run build.sh, and you should see that your simulator files are built
+```
+=== Simulator Output Files ===
+./build/turn-cygnicator/turn-cygnicator
+```
+
+## Running the Simulator
+The simulator uses the real FreeRTOS kernel so the scheduling works in the same way as on hardware.
+To run your solution in the simulator, run the program you built in the docker container. If standing in the firmware/ directory:
+
+```bash
+docker run --rm  -v "$(pwd)":"$(pwd)" -w "$(pwd)" -it rpisdk:latest ./build/turn-cygnicator/turn-cygnicator
+```
+
+![alt text](img/simulator.png "simulator view")
 
 # Workshop starts here
 

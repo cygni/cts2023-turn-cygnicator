@@ -1,6 +1,7 @@
 // Pico libs
 #include "pico/stdio.h"
 #include "hardware/gpio.h"
+#include "hardware/pwm.h"
 
 // FreeRTOS libs
 #include <FreeRTOS.h>
