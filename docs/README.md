@@ -1109,7 +1109,7 @@ When RIGHT/LEFT/HAZARD Button is pressed the corresponding leds should turn on/o
 
 Example:
 
-![alt text](img/button_switch.gif "step 5")
+![alt text](https://upgraded-eureka-rrgzvl6.pages.github.io/img/periodicity.webm "step 5")
 
 ## Step 6: Brake button
 Brake indication is a very time critical feature and it is very important that the REAR leds are switched on as soon as the brake button is pressed, else it could lead to a disaster in the traffic.
@@ -1120,7 +1120,7 @@ Brake indication is a very time critical feature and it is very important that t
 
 When brake button is pressed down, the REAR led rows should turn on and the rest of the processes should be blocked. Once brake is released the system should go back to the previous state.
 
-![alt text](img/break.gif "step 6")
+![alt text](https://upgraded-eureka-rrgzvl6.pages.github.io/periodicity.webm "step 6")
 
 ## Step 7 (BONUS): One Task that controlls each LED row
 ![alt text](puml/png/step_7.png "Step 7 PUML")
