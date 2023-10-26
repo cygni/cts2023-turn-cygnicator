@@ -120,7 +120,7 @@ Notice that the lights are led segments with 4 individual leds for each light. T
 
 By fixed interval in the table above we mean it should be toggled at 2Hz. For the turn indicator, this would be according to the time diagram below. Note that we don't include tock sound. Cooler car brands do this. We don't know why:
 
-![alt text](puml/png/tick_tock.png "Tick tock PUML")
+![alt text](../puml/png/tick_tock.png "Tick tock PUML")
 
 Here is a gif of how the results will look like:
 !!!TODO ADD A GIF WITH REFERENCE SOLUTION!!!
@@ -894,7 +894,7 @@ Implement 2 tasks that can handle the interrupts from TURN RIGHT/LEFT button so 
 * When TURN LEFT button is pressed the LHS LEDs should turn ON and RHS LEDs turn OFF. If the button is pressed again, the LHS LEDs should turn OFF
 * When TURN RIGHT button is pressed the RHS LEDs should turn on and LHS LEDs turn OFF. If the button is pressed again, the RHS LEDs should turn OFF
 
-![alt text](puml/png/step_2.png "Step 2 PUML")
+![alt text](../puml/png/step_2.png "Step 2 PUML")
 
 ### Syncing tasks
 
@@ -1079,13 +1079,13 @@ Implement logic so that the tasks can handle the HAZARD Button
 
 * When HAZARD button is pressed both LHS and RHS should turn ON at the same time. When button is pressed again, both sides should turn OFF at the same time.
 
-![alt text](puml/png/step_3.png "Step 3 PUML")
+![alt text](../puml/png/step_3.png "Step 3 PUML")
 
 ## Step 4: Buzzer (TICK/TOCK sound)
 
 During a Turn indication there is a sound being played in the car to notify the driver. Some brands wants only a "Tick" when the LEDs goes from OFF -> ON and some wants both "Tick" and "Tock". Tick when LEDs goes from OFF -> ON and Tock when led goes from ON -> OFF. Implement a new task that handles the sound functionality.
 
-![alt text](puml/png/step_4.png "Step 4 PUML")
+![alt text](../puml/png/step_4.png "Step 4 PUML")
 
 ### Expected results:
 
@@ -1097,7 +1097,7 @@ Until this point the LEDs are able to turn ON/OFF with button commands. However 
 
 Introduce a periodicity so that when either HAZARD/LEFT/RIGHT Button is pressed, corresponding leds turn on/off periodically and tick/tock sound is heard. 
 
-![alt text](puml/png/step_5.png "Step 5 PUML")
+![alt text](../puml/png/step_5.png "Step 5 PUML")
 
 
 ### Handle shared resources
@@ -1109,21 +1109,21 @@ When RIGHT/LEFT/HAZARD Button is pressed the corresponding leds should turn on/o
 
 Example:
 
-https://upgraded-eureka-rrgzvl6.pages.github.io/img/periodicity.webm
+[periodicity.webm](https://upgraded-eureka-rrgzvl6.pages.github.io/img/periodicity.webm)
 
 ## Step 6: Brake button
 Brake indication is a very time critical feature and it is very important that the REAR leds are switched on as soon as the brake button is pressed, else it could lead to a disaster in the traffic.
 
-![alt text](puml/png/step_6.png "Step 6 PUML")
+![alt text](../puml/png/step_6.png "Step 6 PUML")
 
 ### Expected results:
 
 When brake button is pressed down, the REAR led rows should turn on and the rest of the processes should be blocked. Once brake is released the system should go back to the previous state.
 
-https://upgraded-eureka-rrgzvl6.pages.github.io/periodicity.webm
+[final.webm](https://upgraded-eureka-rrgzvl6.pages.github.io/img/final.webm)
 
 ## Step 7 (BONUS): One Task that controlls each LED row
-![alt text](puml/png/step_7.png "Step 7 PUML")
+![alt text](../puml/png/step_7.png "Step 7 PUML")
 
 ### Expected results:
 
