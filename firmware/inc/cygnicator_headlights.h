@@ -2,6 +2,7 @@
 #define CYGNI_HEADLIGHT_H
 
 #include <stdint.h>
+#include "hardware/pwm.h"
 
 typedef enum {
   FRONT_LEFT = 0,
@@ -57,5 +58,14 @@ static uint32_t const gpio_output_pins_mask = 0xF3FFC;
 // 0011 0000 1100 0000 0000 0000
 // = bit positions 14, 15, 20, 21
 static uint32_t const gpio_input_pins_mask = 0x30c000;
+
+static void play_tone(uint16_t wrap_count)
+{
+    const uint slice_num = pwm_gpio_to_slice_num(gpio_buzzer_map[BUZZER_FRONT]);
+    pwm_set_wrap(slice_num, wrap_count);
+    pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], wrap_count);
+}
+
+static void stop_tone() { pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], 0); }
 
 #endif // CYGNI_HEADLIGHT_H
