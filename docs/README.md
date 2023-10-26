@@ -132,7 +132,8 @@ By fixed interval in the table above we mean it should be toggled at 2Hz. For th
 ![alt text](../puml/png/tick_tock.png "Tick Tock PUML")
 
 Here is a gif of how the results will look like:
-[final.webm](https://github.com/cygni/cts2023-turn-cygnicator/assets/25175673/0bba524a-a132-4791-ab8d-5cc3c0bf4ab1)
+
+[final.webm](https://github.com/cygni/cts2023-turn-cygnicator/assets/25175673/18735ce9-be89-4dc5-a5c7-94b2c8693f9b)
 
 In a normal car, when the hazard is on and the brake is issued, the hazard continues after the brake has been released. In this workshop we do not require this behavior instead it's up to the designer how to handle this. You will see in the time diagrams later in the workshop that we suggest that you need to reissue the hazard after braking. The same goes for turn indicator.
 
