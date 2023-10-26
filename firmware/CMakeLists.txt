@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/pico_sdk_import.cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS_Kernel_import.cmake)
-#include(${CMAKE_CURRENT_SOURCE_DIR}/simulator.cmake)
+#include(${CMAKE_CURRENT_SOURCE_DIR}/pico_sdk_import.cmake)
+#include(${CMAKE_CURRENT_SOURCE_DIR}/FreeRTOS_Kernel_import.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/simulator.cmake)
 
 project(turn-cygnicator C CXX ASM)
 set(CMAKE_C_STANDARD 11)
