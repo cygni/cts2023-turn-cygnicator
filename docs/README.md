@@ -18,6 +18,7 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
       - [Flashing by moving UF2 to mass-storage device](#flashing-by-moving-uf2-to-mass-storage-device)
   - [Building for the Simulator](#building-for-the-simulator)
   - [Running the Simulator](#running-the-simulator)
+  - [Autocompletion in VS Code](#autocompletion-in-vs-code)
 - [Workshop starts here](#workshop-starts-here)
   - [Step 1: Handle button commands](#step-1-handle-button-commands)
     - [Expected result](#expected-result)
@@ -79,29 +80,29 @@ There is also a fifth button closest to the Pico board. This button ties RUN pin
 
 Skip this section if you are not interested in which GPIO is connected to what.
 
-| GPIO | GPIO CONFIG | HW desc |
-| ---- |---- |------- |
-| 2    | OUT | LED_FL0 |
-| 3    | OUT | LED_FL1 |
-| 4    | OUT | LED_FL2 |
-| 5    | OUT | LED_FL3 |
-| 6    | OUT | LED_FR0 |
-| 7    | OUT | LED_FR1 |
-| 8    | OUT | LED_FR2 |
-| 9    | OUT | LED_FR3 |
-| 10   | OUT | LED_RL0 |
-| 11   | OUT | LED_RL1 |
-| 12   | OUT | LED_RL2 |
-| 13   | OUT | LED_RL3 |
-| 19   | OUT | LED_RR0 |
-| 18   | OUT | LED_RR1 |
-| 17   | OUT | LED_RR2 |
-| 16   | OUT | LED_RR3 |
+| GPIO | GPIO CONFIG  | HW desc     |
+| ---- | ------------ | ----------- |
+| 2    | OUT          | LED_FL0     |
+| 3    | OUT          | LED_FL1     |
+| 4    | OUT          | LED_FL2     |
+| 5    | OUT          | LED_FL3     |
+| 6    | OUT          | LED_FR0     |
+| 7    | OUT          | LED_FR1     |
+| 8    | OUT          | LED_FR2     |
+| 9    | OUT          | LED_FR3     |
+| 10   | OUT          | LED_RL0     |
+| 11   | OUT          | LED_RL1     |
+| 12   | OUT          | LED_RL2     |
+| 13   | OUT          | LED_RL3     |
+| 19   | OUT          | LED_RR0     |
+| 18   | OUT          | LED_RR1     |
+| 17   | OUT          | LED_RR2     |
+| 16   | OUT          | LED_RR3     |
 | 14   | IN / PULL-UP | L_INDCR_BTN |
-| 15   | IN / PULL-UP| L_INDCR_BTN |
-| 20   | IN / PULL-UP| BRAKE_BTN |
-| 21   | IN / PULL-UP| HAZARD_BTN |
-| 22   | OUT / PWM | BUZZER |
+| 15   | IN / PULL-UP | L_INDCR_BTN |
+| 20   | IN / PULL-UP | BRAKE_BTN   |
+| 21   | IN / PULL-UP | HAZARD_BTN  |
+| 22   | OUT / PWM    | BUZZER      |
 
 Raspberry Pi Pico is not driving all LEDs directly, instead a MOSFET transistor is used for each LED to drive each individual LED using the +5V from the USB bus. A MOSFET is a type of transistor that controls the flow of electrical current by varying the voltage applied to a gate terminal. This setup makes it possible for the 3.3V GPIO to control an LED with +5V forward voltage. 
 
@@ -119,12 +120,12 @@ Notice that the lights are LED segments with 4 individual LEDs for each light. T
 
 ![alt text](img/pcb_headlights.png "PCB headlight rows")
 
-| Button | Action | Expected outcome |
-| ------ | ------ | --------- |
-| Turn left | On press | Front left & rear left headlights toggles at a fixed interval. Buzzer plays a tick sound for each flash. |
+| Button     | Action   | Expected outcome                                                                                           |
+| ---------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| Turn left  | On press | Front left & rear left headlights toggles at a fixed interval. Buzzer plays a tick sound for each flash.   |
 | Turn right | On press | Front right & rear right headlights toggles at a fixed interval. Buzzer plays a tick sound for each flash. |
-| Hazard | On press | All headlights headlights toggles at a fixed interval. Buzzer plays a tick sound for each flash. |
-| Brake | On hold | Only REAR RIGHT and REAR LEFT headlights are on. |
+| Hazard     | On press | All headlights headlights toggles at a fixed interval. Buzzer plays a tick sound for each flash.           |
+| Brake      | On hold  | Only REAR RIGHT and REAR LEFT headlights are on.                                                           |
 
 
 By fixed interval in the table above we mean it should be toggled at 2Hz. For the turn indicator, this would be according to the time diagram below. Note that we don't include Tock sound. Cooler car brands do this. We don't know why:
@@ -321,6 +322,10 @@ To run your solution in the simulator, run the program you built in the docker c
 ![alt text](img/simulator.png "simulator view")
 
 **_NOTE:_** Keep in mind that the Simulator is not fully implemented and will not work for all Pico SDK functions. If you would like to see what is included, please look under **simulator/hardware** and **simulator/pico**.
+
+## Autocompletion in VS Code
+Since we build everything in a Docker container, your IDE might not find the header files required for autocompletion. An easy way to get autocompletion to work for VSCode is to use the included [Devcontainer](https://code.visualstudio.com/docs/devcontainers/containers) configuration.
+Open the cts2023-turn-cygnicator folder in VSCode and click the "Reopen in devcontainer" button popup (Or use the Command Palette to run Rebuild and Open In Devcontainer)
 
 # Workshop starts here
 
@@ -534,14 +539,14 @@ This is a simplified task state diagram, containing only the states that we care
 Tasks are automatically in ready state when created. The RTOS scheduler decides what task to run at a time. An example of a blocking API call is vTaskDelay.
 
 Looking for more information? These are the sources we have used:
-| Description | Link |
-| ------------ | --- |
-| FreeRTOS what is a task? | [link](https://www.freertos.org/taskandcr.html) |
-| FreeRTOS tasks states | [link](https://www.freertos.org/RTOS-task-states.html) |
-| FreeRTOS Implementing tasks | [link](https://www.freertos.org/implementing-a-FreeRTOS-task.html) |
-| FreeRTOS xTaskCreate API | [link](https://www.freertos.org/a00125.html) |
-| FreeRTOS vTaskStartScheduler API | [link](https://www.freertos.org/a00132.html) |
-| FreeRTOS vTaskDelay API | [link](https://www.freertos.org/a00127.html) |
+| Description                      | Link                                                               |
+| -------------------------------- | ------------------------------------------------------------------ |
+| FreeRTOS what is a task?         | [link](https://www.freertos.org/taskandcr.html)                    |
+| FreeRTOS tasks states            | [link](https://www.freertos.org/RTOS-task-states.html)             |
+| FreeRTOS Implementing tasks      | [link](https://www.freertos.org/implementing-a-FreeRTOS-task.html) |
+| FreeRTOS xTaskCreate API         | [link](https://www.freertos.org/a00125.html)                       |
+| FreeRTOS vTaskStartScheduler API | [link](https://www.freertos.org/a00132.html)                       |
+| FreeRTOS vTaskDelay API          | [link](https://www.freertos.org/a00127.html)                       |
 
 
 ### xTaskCreate()
@@ -990,18 +995,18 @@ void vAFunction( void )
 }
 ```
 
-| Description | Link |
-| ------------ | --- |
-| FreeRTOS Queues | [link](https://www.freertos.org/Embedded-RTOS-Queues.html) |
-| FreeRTOS Queue API | [link](https://www.freertos.org/a00018.html) |
-| FreeRTOS Binary Semaphores | [link](https://www.freertos.org/Embedded-RTOS-Binary-Semaphores.html) |
-| FreeRTOS Mutex | [link](https://www.freertos.org/Real-time-embedded-RTOS-mutexes.html) |
-| FreeRTOS Semaphore/mutex API | [link](https://www.freertos.org/a00113.html) |
-| FreeRTOS Task Notifications | [link](https://www.freertos.org/RTOS-task-notifications.html) |
-| FreeRTOS Task Notifications API | [link](https://www.freertos.org/RTOS-task-notification-API.html) |
-| FreeRTOS Stream & Message Buffers | [link](https://www.freertos.org/RTOS-stream-message-buffers.html) |
-| FreeRTOS Stream buffers API | [link](https://www.freertos.org/RTOS-stream-buffer-API.html) |
-| FreeRTOS Message buffers API | [link](https://www.freertos.org/RTOS-message-buffer-API.html) |
+| Description                       | Link                                                                  |
+| --------------------------------- | --------------------------------------------------------------------- |
+| FreeRTOS Queues                   | [link](https://www.freertos.org/Embedded-RTOS-Queues.html)            |
+| FreeRTOS Queue API                | [link](https://www.freertos.org/a00018.html)                          |
+| FreeRTOS Binary Semaphores        | [link](https://www.freertos.org/Embedded-RTOS-Binary-Semaphores.html) |
+| FreeRTOS Mutex                    | [link](https://www.freertos.org/Real-time-embedded-RTOS-mutexes.html) |
+| FreeRTOS Semaphore/mutex API      | [link](https://www.freertos.org/a00113.html)                          |
+| FreeRTOS Task Notifications       | [link](https://www.freertos.org/RTOS-task-notifications.html)         |
+| FreeRTOS Task Notifications API   | [link](https://www.freertos.org/RTOS-task-notification-API.html)      |
+| FreeRTOS Stream & Message Buffers | [link](https://www.freertos.org/RTOS-stream-message-buffers.html)     |
+| FreeRTOS Stream buffers API       | [link](https://www.freertos.org/RTOS-stream-buffer-API.html)          |
+| FreeRTOS Message buffers API      | [link](https://www.freertos.org/RTOS-message-buffer-API.html)         |
 
 
 ## Syncing tasks
