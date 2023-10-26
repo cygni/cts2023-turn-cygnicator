@@ -1,5 +1,4 @@
 #include "hardware/gpio.h"
-#include "hardware/pwm.h"
 
 #include "pico/stdio.h"
 #include "pico/time.h"
@@ -22,14 +21,6 @@ static QueueHandle_t package_queue = NULL;
 static SemaphoreHandle_t x_break_semaphore = NULL;
 TimerHandle_t xTimer;
 
-void play_tone()
-{
-    const uint slice_num = pwm_gpio_to_slice_num(gpio_buzzer_map[BUZZER_FRONT]);
-    pwm_set_wrap(slice_num, 8590);
-    pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], 8192);
-}
-
-void stop_tone() { pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], 0); }
 
 void ledRightToLeft(uint8_t const *leds, TickType_t duration_ticks)
 {
@@ -251,7 +242,7 @@ void generic_worker(void *params)
         case BUZZER:
         {
             // do the buzzbuzz
-            play_tone();
+            play_tone(8192);
             vTaskDelay(pdMS_TO_TICKS(25));
             stop_tone();
             break;

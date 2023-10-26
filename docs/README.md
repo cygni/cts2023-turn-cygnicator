@@ -55,7 +55,7 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
 
 ## Raspberry Pi Pico
 
-To realize the project, we will use a Raspberry Pi Pico. The Pico is based on the RP2040 microcontroller, which has a dual-core Arm Cortex-M0 CPU at 133Mhz (though clocked at 125Mhz by default). It has 264kB RAM and 2MB flash memory. The rest of the specifications can be read [here](https://www.raspberrypi.com/documentation/microcontrollers/rp2040.html). Pico has a logic voltage of 3.3V, which means that a pin that is high - i.e. has it's output enabled - will have a voltage of 3.3V.
+To realize the project, we will use a Raspberry Pi Pico. The Pico is based on the RP2040 micro controller, which has a dual-core Arm Cortex-M0 CPU at 133Mhz (though clocked at 125Mhz by default). It has 264kB RAM and 2MB flash memory. The rest of the specifications can be read [here](https://www.raspberrypi.com/documentation/microcontrollers/rp2040.html). Pico has a logic voltage of 3.3V, which means that a pin that is high - i.e. has it's output enabled - will have a voltage of 3.3V.
 
 The board has 28 GPIO pins. GPIO stands for general purpose input/output. GPIO pins are software-controlled connectors that can be used as input or output. Some pins can be used either as GPIO or for other functions such as I2C or PWM if you configure them for it.
 
@@ -114,7 +114,7 @@ As you see in the picture, there are three resistors for each MOSFET. Simplifica
 
 ## Workshop goals
 
-The goal of the workshop is to implement the telltale for the car on the PCB, with the buttons controlling the behaviour as listed in the table below.
+The goal of the workshop is to implement the telltale for the car on the PCB, with the buttons controlling the behavior as listed in the table below.
 Notice that the lights are LED segments with 4 individual LEDs for each light. That is so that we can implement sweeping indicator lights, like on the new [Volvo EX90](https://www.youtube.com/shorts/eO_5jhUtqR8).
 
 ![alt text](img/pcb_headlights.png "PCB headlight rows")
@@ -127,9 +127,9 @@ Notice that the lights are LED segments with 4 individual LEDs for each light. T
 | Brake | On hold | Only REAR RIGHT and REAR LEFT headlights are on. |
 
 
-By fixed interval in the table above we mean it should be toggled at 2Hz. For the turn indicator, this would be according to the time diagram below. Note that we don't include tock sound. Cooler car brands do this. We don't know why:
+By fixed interval in the table above we mean it should be toggled at 2Hz. For the turn indicator, this would be according to the time diagram below. Note that we don't include Tock sound. Cooler car brands do this. We don't know why:
 
-![alt text](../../puml/png/tick_tock.png "Tick tock PUML")
+![alt text](../puml/png/tick_tock.png "Tick Tock PUML")
 
 Here is a gif of how the results will look like:
 [final.webm](https://github.com/cygni/cts2023-turn-cygnicator/assets/25175673/0bba524a-a132-4791-ab8d-5cc3c0bf4ab1)
@@ -178,8 +178,6 @@ Run this command in the root folder of this repository:
 `build_docker.sh`
 
 It takes a couple of minutes to download all dependencies, this command should only be run once.
-
-TODO: Vi borde förbygga denna och hosta på nån docker repository.
 
 ## How to build an image
 
@@ -316,15 +314,19 @@ To run your solution in the simulator, run the program you built in the docker c
 ```
 
 
-**_NOTE:_** You need to initalize the scheduler to be able to see the simulator view:
-
+**_NOTE:_** You need to initialize the scheduler to be able to see the simulator view:
 
 
 ![alt text](img/simulator.png "simulator view")
 
+**_NOTE:_** Keep in mind that the Simulator is not fully implemented and will not work for all Pico SDK functions. If you would like to see what is included, please look under **simulator/hardware** and **simulator/pico**.
+
 # Workshop starts here
 
 Now the actual workshop starts.
+
+Since the main focus of this workshop will be freeRTOS, we have provided an API for you to use to control the buzzer and LEDs, **inc/cygnicator_headlights.h**
+This API includes TYPES and GPIO mappings to ease the process of turning on/off LEDs and use the buzzer.
 
 We have gathered all API documentation needed for this workshop in [API Documentation](#api-documentation).
 You don't need to read through all of the documentation before starting the workshop.
@@ -338,7 +340,7 @@ Implement logic to handle the buttons TURN RIGHT, TURN LEFT, HAZARD and BRAKE
 
 Concepts needed for this step:
 - Use [Interrupt Handling](#interrupt-handling) or [Polling](#polling)
-- This API has been defined by us, carefully read this: [Cygnicator API](#cygnicator-api)
+- Don't forget to read the Cygnicator API [Cygnicator API](#cygnicator-api)
 - Optional in this step [FreeRTOS Task API](#freertos-task-api)
 
 
@@ -453,7 +455,9 @@ int main() {
 }
 
 ```
-The callback function protoype is defined as:
+**_NOTE:_** The example above is only for show. It is not a good practice to have printf in an ISR function. Since an interrupt handler needs to be very fast to not mess up the rest of the system.  
+
+The callback function prototype is defined as:
 ```C
 typedef void(* gpio_irq_callback_t) (uint gpio, uint32_t event_mask)
 ```
@@ -461,10 +465,10 @@ you can have 1 or more interrupt events configured for the same gpio
 ```C
 // Event mask definition
 enum gpio_irq_level {
-  GPIO_IRQ_LEVEL_LOW = 0x1u,
-  GPIO_IRQ_LEVEL_HIGH = 0x2u,
-  GPIO_IRQ_EDGE_FALL = 0x4u,
-  GPIO_IRQ_EDGE_RISE = 0x8u
+  GPIO_IRQ_LEVEL_LOW = 0x1u, // Will trigger IRQ when gpio is low (0)
+  GPIO_IRQ_LEVEL_HIGH = 0x2u, // Will trigger IRQ when gpio is high (1)
+  GPIO_IRQ_EDGE_FALL = 0x4u, // Will trigger IRQ when gpio goes from 1 -> 0
+  GPIO_IRQ_EDGE_RISE = 0x8u // Will trigger IRQ when gpio goes from 0 -> 1
 };
 
 //Eg:
@@ -483,7 +487,7 @@ see reference: [gpio_set_irq_enabled_with_callback](https://www.raspberrypi.com/
 
 If you don't want an interrupt based solution you could always use polling. Modern systems usually supports IRQ but sometimes you have no other option than to use polling.
 
-The codeblock below is an example of a polling function that polls the gpio every 20 ms. This can be combined with FreeRTOS Tasks which will be described later during the workshop.
+The codeblock below is an example of a polling function that polls the gpio every 20 ms.
 
 ```C
 
@@ -492,16 +496,12 @@ void poll_gpio(uint gpio) {
   while (1) {
     sleep_ms(20);
     gpio_value = gpio_get(gpio);
-    printf("value: %d", gpio_value);
+    printf("value: %d \n", gpio_value);
   }
 }
 ```
 
 ## Cygnicator API
-
-Since the main focus of this workshop will be freeRTOS, we have provided an API for you to use to control the buzzer and LEDs, **inc/cygnicator_headlights.h**
-
-This API includes TYPES and GPIO mappings to ease the process of turning on/off LEDs and use the buzzer: 
 
 Here are some examples of how to use the API:
 
@@ -520,16 +520,6 @@ if (1 == gpio_get(gpio_button_map[BUTTON_LEFT_INDICATOR])) {
   printf("BUTTON_LEFT_INDICATOR is not pressed");
 }
 
-...
-
-// Play a tone with the buzzer
-// tone is hardcoded to be played @ 1kHz
-void play_tone()
-{
-    const uint slice_num = pwm_gpio_to_slice_num(gpio_buzzer_map[BUZZER_FRONT]);
-    pwm_set_wrap(slice_num, 8590);
-    pwm_set_gpio_level(gpio_buzzer_map[BUZZER_FRONT], 8192);
-}
 ```
 ## FreeRTOS Task API
 
@@ -614,7 +604,7 @@ void vTaskFunction( void * pvParameters )
 ```
 ## Inter-task communication
 
-There are multiple ways/concepts that can be used for intertask communication such as Queues, Binary Semaphores, Mutexes, Direct Task notification and Stream/Message buffers. 
+There are multiple ways/concepts that can be used for inter-task communication such as Queues, Binary Semaphores, Mutexes, Direct Task notification and Stream/Message buffers. 
 
 Queues are the primary form and they can be used to send messages between tasks, and between interrupts and tasks. In most cases they are used as thread safe FIFO (First In First Out) buffers with new data being sent to the back of the queue, although data can also be sent to the front of the queue.
 
@@ -878,13 +868,13 @@ static void prvTask2( void *pvParameters )
 ```
 ### Stream/Message buffers
 
-Stream buffers are an RTOS task to RTOS task, and interrupt to task communication primitives. Unlike most other FreeRTOS communications primitives, they are optimised for single reader single writer scenarios, such as passing data from an interrupt service routine to a task, or from one microcontroller core to another on dual-core CPUs. Data is passed by copy - the data is copied into the buffer by the sender and out of the buffer by the read.
+Stream buffers are an RTOS task to RTOS task, and interrupt to task communication primitives. Unlike most other FreeRTOS communications primitives, they are optimized for single reader single writer scenarios, such as passing data from an interrupt service routine to a task, or from one micro controller core to another on dual-core CPUs. Data is passed by copy - the data is copied into the buffer by the sender and out of the buffer by the read.
 
 Stream buffers pass a continuous stream of bytes. Message buffers pass variable sized but discrete messages. Message buffers use stream buffers for data transfer. 
 
 #### Stream buffers
 
-Streambuffers can be created with callback send/receive functions which can be triggered on specific conditions, see example:
+Stream buffers can be created with callback send/receive functions which can be triggered on specific conditions, see example:
 ```C
 void vSendCallbackFunction( StreamBufferHandle_t xStreamBuffer,
                             BaseType_t xIsInsideISR,
@@ -1003,7 +993,7 @@ void vAFunction( void )
 | ------------ | --- |
 | FreeRTOS Queues | [link](https://www.freertos.org/Embedded-RTOS-Queues.html) |
 | FreeRTOS Queue API | [link](https://www.freertos.org/a00018.html) |
-| FreeRTOS Binary Sempahores | [link](https://www.freertos.org/Embedded-RTOS-Binary-Semaphores.html) |
+| FreeRTOS Binary Semaphores | [link](https://www.freertos.org/Embedded-RTOS-Binary-Semaphores.html) |
 | FreeRTOS Mutex | [link](https://www.freertos.org/Real-time-embedded-RTOS-mutexes.html) |
 | FreeRTOS Semaphore/mutex API | [link](https://www.freertos.org/a00113.html) |
 | FreeRTOS Task Notifications | [link](https://www.freertos.org/RTOS-task-notifications.html) |
@@ -1015,7 +1005,11 @@ void vAFunction( void )
 
 ## Syncing tasks
 
-There are multiple ways of syncing between tasks but the fundamental part is the concept of periodic interrupts, **tick interrupts**, **tick period** and **tick count**. **Tick count** is the number of **tick interrupts** that have occured since the FreeRTOS application started. This is used as a measure of time. **tick period** is the time between two **tick interrupts**. This period can be configured in the FreeRTOSConfig.h file by changing **configTICK_RATE_HZ**.
+There are multiple ways of syncing between tasks but the fundamental part is the concept of periodic interrupts which FreeRTOS calls **tick interrupts**.
+Each **tick interrupt** the scheduler will 
+ **tick period** and **tick count**. **Tick count** is the number of **tick interrupts** that have occurred since the FreeRTOS application started. This is used as a measure of time. **tick period** is the time between two **tick interrupts**. This period can be configured in the FreeRTOSConfig.h file by changing **configTICK_RATE_HZ**.
+
+As we explained in the presentation the tick interrupt can be modified in the **FreeRTOSConfig.h**. 
 ```C
 // FreeRTOSConfig.h
 
@@ -1033,13 +1027,13 @@ Inter-task communication is not only used to communicate between tasks but also 
 
 Some examples from FreeRTOS API
 ```C
-// Queue send function protoype
+// Queue send function prototype
  BaseType_t xQueueSend(
                             QueueHandle_t xQueue,
                             const void * pvItemToQueue,
                             TickType_t xTicksToWait
                          );
-// Queue receive function protoype
+// Queue receive function prototype
  BaseType_t xQueueReceive(
                               QueueHandle_t xQueue,
                               void *pvBuffer,
@@ -1053,11 +1047,11 @@ xSemaphoreTake( SemaphoreHandle_t xSemaphore,
 // Semaphore give function prototype
 xSemaphoreGive( SemaphoreHandle_t xSemaphore );
 
-// Direct to task notificaton take function prototype
+// Direct to task notification take function prototype
 uint32_t ulTaskNotifyTake( BaseType_t xClearCountOnExit,
                             TickType_t xTicksToWait );
 
-// Direct to task notificaton give function prototype
+// Direct to task notification give function prototype
 BaseType_t xTaskNotifyGive( TaskHandle_t xTaskToNotify );
 
 ```
@@ -1069,6 +1063,9 @@ Tasks can be synchronized by either using relative time or absolute time.
 vTaskDelay() specifies a wake time relative to the time at which the function
 is called, vTaskDelayUntil() specifies the absolute (exact) time at which it wishes to
 unblock.
+
+if you want to have a fixed frequency, this can be hard to achieve with vTaskDelay since the task may take a different path through the
+code between calls, or may get interrupted or preempted a different number of times each time it executes.
 */
 
 // relative time delay
@@ -1079,7 +1076,7 @@ void vTaskFunction( void * pvParameters )
 
      for( ;; )
      {
-         /* Simply toggle the LED every 500ms, blocking between each toggle. */
+         /* Simply toggle the LED every 500ms from when vTaskDelay was called, suspending the task between each toggle. */
          vToggleLED();
          vTaskDelay( xDelay );
      }
@@ -1095,12 +1092,12 @@ void vTaskFunction( void * pvParameters )
       xTaskGetTickCount(); will return the count of ticks since vTaskStartScheduler was called.
      */
 
-     // Initialise the xLastWakeTime variable with the current time.
+     // Initialize the xLastWakeTime variable with the current time.
      xLastWakeTime = xTaskGetTickCount();
 
      for( ;; )
      {
-         // Wait for the next cycle.
+         // Wait for the next cycle which is 10 ticks.
          vToggleLED();
          vTaskDelayUntil( &xLastWakeTime, xFrequency );
      }
@@ -1108,7 +1105,7 @@ void vTaskFunction( void * pvParameters )
 ```
 
 ### Event Groups
-A recommended way from FreeRTOS is to use Event groups when the application require 2 or more tasks to synchronize. Imagine a **Task A** who has received an event and will delegate some work to **Task B** and **Task C**. If **Task A** can't receive a new event until the other tasks are done, then they need to synchronize with each other. An event group can be used to create a synchronisation point. To achieve this, each task are assigned an unique event bit whitin the event group. Each task sets its own unique bit and then wait for all the other bits to be set.
+A recommended way from FreeRTOS is to use Event groups when the application require 2 or more tasks to synchronize. Imagine a **Task A** who has received an event and will delegate some work to **Task B** and **Task C**. If **Task A** can't receive a new event until the other tasks are done, then they need to synchronize with each other. An event group can be used to create a synchronization point. To achieve this, each task are assigned an unique event bit within the event group. Each task sets its own unique bit and then wait for all the other bits to be set.
 
 example from FreeRTOS:
 
@@ -1190,4 +1187,4 @@ int main( void )
 
 ![alt text](img/event_group.png "Output from event group example")
 
-In the image you can see that the time when the tasks reaches the sync point varies alot, but are very synchronized when exiting the sync point.
+In the image you can see that the time when the tasks reaches the sync point varies a lot, but are very synchronized when exiting the sync point.
