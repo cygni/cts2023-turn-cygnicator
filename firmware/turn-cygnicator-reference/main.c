@@ -137,7 +137,7 @@ static void gpio_callback(uint gpio, uint32_t events)
         xQueueSendToBackFromISR(state_queue, &next_state, &xHigherPriorityTaskWoken);
     }
     
-    
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 
 static void init_pico(void)
