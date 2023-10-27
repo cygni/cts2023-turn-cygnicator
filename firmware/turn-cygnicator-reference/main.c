@@ -1,5 +1,5 @@
-#include "hardware/gpio.h"
 
+#include "hardware/gpio.h"
 #include "pico/stdio.h"
 #include "pico/time.h"
 #include "pico/types.h"
@@ -14,13 +14,15 @@
 #include <stdio.h>
 #include <task.h>
 #include <timers.h>
+#include "trcDefines.h"
 #include "types.h"
+
+
 
 static QueueHandle_t state_queue = NULL;
 static QueueHandle_t package_queue = NULL;
 static SemaphoreHandle_t x_break_semaphore = NULL;
 TimerHandle_t xTimer;
-
 
 void ledRightToLeft(uint8_t const *leds, TickType_t duration_ticks)
 {
@@ -366,6 +368,8 @@ void state_machine(void *params)
 int main(void)
 {
     init_pico();
+
+    xTraceEnable(TRC_START);
     x_break_semaphore = xSemaphoreCreateBinary();
     state_queue = xQueueCreate(1, sizeof(states_t));
     package_queue = xQueueCreate(5, sizeof(work_package_t));

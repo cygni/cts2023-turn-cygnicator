@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libusb-1.0-0-dev pkg-config clangd clang-format picocom libncurses5-dev \
     libncursesw5-dev
 
+
 # for simulator
 RUN apt-get install -y --no-install-recommends libncurses5-dev
 RUN apt-get install -y locales
@@ -21,8 +22,9 @@ ENV PICO_SDK_PATH="/tmp/pico-sdk"
 ENV FREERTOS_KERNEL_PATH="/tmp/FreeRTOS-Kernel"
 
 USER builder
-RUN git clone https://github.com/raspberrypi/pico-sdk /tmp/pico-sdk && \
+RUN git clone https://github.com/raspberrypi/pico-sdk.git /tmp/pico-sdk && \
     cd /tmp/pico-sdk && \
+    git checkout develop && \
     git submodule update --init
 RUN git clone https://github.com/FreeRTOS/FreeRTOS-Kernel.git /tmp/FreeRTOS-Kernel && \
     cd /tmp/FreeRTOS-Kernel && \
