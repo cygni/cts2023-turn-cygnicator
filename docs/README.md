@@ -428,6 +428,7 @@ When the brake button is pressed down, the REAR LED rows should turn on and the 
 Each LED row is controlled by its own task.
 
 * T1 FRONT LEFT
+* T2 REAR LEFT
 * T3 FRONT RIGHT
 * T4 REAR RIGHT
 * T5 BUZZER
