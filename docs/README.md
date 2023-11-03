@@ -407,12 +407,7 @@ Introduce a periodicity so that when either HAZARD/LEFT/RIGHT Button is pressed,
 
 When RIGHT/LEFT/HAZARD Button is pressed the corresponding LEDs should turn on/off with a frequency of 0.5 sec. First button press will start the indicaton, second button press will stop the indicaton, if it is the same button. If you switch from LEFT to RIGHT, then the lights should change from LHS to RHS and not turn of the indication completley.   
 
-
-<figure class="video_container">
-  <video controls="true" allowfullscreen="true">
-    <source="img/periodicity.webm" type="video/webm">
-  </video>
-</figure>
+[periodicity.webm](https://github.com/cygni/cts2023-turn-cygnicator/raw/main/docs/img/periodicity.webm)
 
 ## Step 6: Brake button
 Brake indication is a very time-critical feature and it is very important that the REAR LEDs are switched on as soon as the brake button is pressed, else it could lead to a disaster in the traffic. Implement brake lights that are handled as the highest priority within the scheduler.
@@ -423,11 +418,7 @@ Brake indication is a very time-critical feature and it is very important that t
 
 When the brake button is pressed down, the REAR LED rows should turn on and the rest of the processes should be blocked. Once the brake is released the system should go back to the previous state.
 
-<figure class="video_container">
-  <video controls="true" allowfullscreen="true">
-    <source="img/final.webm" type="video/webm">
-  </video>
-</figure>
+[final.webm](https://github.com/cygni/cts2023-turn-cygnicator/raw/main/docs/img/final.webm)
 
 ## Step 7 (BONUS): One Task that controls each LED row
 ![alt text](../puml/png/step_7.png "Step 7 PUML")
