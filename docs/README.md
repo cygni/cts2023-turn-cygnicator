@@ -134,7 +134,7 @@ By fixed interval in the table above we mean it should be toggled at 2Hz. For th
 
 Here is a gif of how the results will look like:
 
-[final.webm](https://github.com/cygni/cts2023-turn-cygnicator/assets/25175673/18735ce9-be89-4dc5-a5c7-94b2c8693f9b)
+[![final.webm](img/final-thumbnail.png)](https://drive.google.com/file/d/19v1Uch-nBKemJIpWEXx7P-gcsXUdpyr2/view?usp=drive_link)
 
 In a normal car, when the hazard is on and the brake is issued, the hazard continues after the brake has been released. In this workshop we do not require this behavior instead it's up to the designer how to handle this. You will see in the time diagrams later in the workshop that we suggest that you need to reissue the hazard after braking. The same goes for turn indicator.
 
@@ -407,11 +407,7 @@ Introduce a periodicity so that when either HAZARD/LEFT/RIGHT Button is pressed,
 
 When RIGHT/LEFT/HAZARD Button is pressed the corresponding LEDs should turn on/off with a frequency of 0.5 sec. First button press will start the indicaton, second button press will stop the indicaton, if it is the same button. If you switch from LEFT to RIGHT, then the lights should change from LHS to RHS and not turn of the indication completley.   
 
-<figure class="video_container">
-  <video controls="true" allowfullscreen="true">
-    <source="https://github.com/cygni/cts2023-turn-cygnicator/raw/main/docs/img/periodicity.webm" type="video/webm">
-  </video>
-</figure>
+[![periodicity.webm](img/periodicity-thumbnail.png)](https://drive.google.com/file/d/1yrOnubroKxL-azVQ5uq2RfC7ghdMssjC/view?usp=drive_link)
 
 ## Step 6: Brake button
 Brake indication is a very time-critical feature and it is very important that the REAR LEDs are switched on as soon as the brake button is pressed, else it could lead to a disaster in the traffic. Implement brake lights that are handled as the highest priority within the scheduler.
