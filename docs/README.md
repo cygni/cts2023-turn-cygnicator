@@ -418,7 +418,7 @@ Brake indication is a very time-critical feature and it is very important that t
 
 When the brake button is pressed down, the REAR LED rows should turn on and the rest of the processes should be blocked. Once the brake is released the system should go back to the previous state.
 
-[final.webm](https://github.com/cygni/cts2023-turn-cygnicator/raw/main/docs/img/final.webm)
+[![final.webm](img/final-thumbnail.png)](https://drive.google.com/file/d/19v1Uch-nBKemJIpWEXx7P-gcsXUdpyr2/view?usp=drive_link)
 
 ## Step 7 (BONUS): One Task that controls each LED row
 ![alt text](../puml/png/step_7.png "Step 7 PUML")
