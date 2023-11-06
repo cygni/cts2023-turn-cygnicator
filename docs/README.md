@@ -10,7 +10,7 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
 - [Workshop preparation](#workshop-preparation)
   - [Preparation](#preparation)
   - [Prepare the development environment](#prepare-the-development-environment)
-  - [How to build an image](#how-to-build-an-image)
+  - [How to build a Raspberry-PI flashable image](#how-to-build-a-raspberry-pi-flashable-image)
   - [How to flash an image to Pico](#how-to-flash-an-image-to-pico)
     - [Step 1: Enter programming mode](#step-1-enter-programming-mode)
     - [Step 2: Flash image](#step-2-flash-image)
@@ -175,13 +175,13 @@ firmware/inc/FreeRTOSConfig.h
 
 The first step is to build the docker image (`firmware/docker/Dockerfile`) that contains the FreeRTOS kernel, pico SDK, picotool and other tools/libraries that are needed.
 
-Run this command in the root folder of this repository:
+Run this command in the **firmware/** folder of this repository:
 `docker build --build-arg UID="$(id -u)" -t rpisdk:latest docker/` or run
-`build_docker.sh`
+`build_docker.sh` in the same folder.
 
 It takes a couple of minutes to download all dependencies, this command should only be run once.
 
-## How to build an image
+## How to build a Raspberry-PI flashable image
 
 ```bash
 cd firmware
