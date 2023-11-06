@@ -329,6 +329,8 @@ To run your solution in the simulator, run the program you built in the docker c
 Since we build everything in a Docker container, your IDE might not find the header files required for autocompletion. An easy way to get autocompletion to work for VSCode is to use the included [Devcontainer](https://code.visualstudio.com/docs/devcontainers/containers) configuration.
 Open the cts2023-turn-cygnicator/firmware folder in VSCode and click the "Reopen in devcontainer" button popup (Or use the Command Palette to run Rebuild and Open In Devcontainer). It might take some time to set it up the first time.
 
+The devcontainer contains a basic set of extensions, such as clangd. You can see the definition of the devcontainer in [devcontainer.json](../firmware/.devcontainer/devcontainer.json).
+
 # Workshop starts here
 
 Now the actual workshop starts.
