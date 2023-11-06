@@ -301,6 +301,8 @@ Run build.sh, and you should see that your simulator files are built
 ./build/turn-cygnicator/turn-cygnicator
 ```
 
+If you see `warning: unknown escape sequence: '\040'`, this can safely be ignored.
+
 ## Running the Simulator
 The simulator uses the real FreeRTOS kernel so the scheduling works in the same way as on hardware. However, to support the compilation of the Pico SDK to run on your host device, we have mocked the functionality to provide basic write/read and interrupt handling. The implementation of the simulator is not 100% bulletproof, **if you have hardware available we suggest you use that**.
 
@@ -325,7 +327,7 @@ To run your solution in the simulator, run the program you built in the docker c
 
 ## Autocompletion in VS Code
 Since we build everything in a Docker container, your IDE might not find the header files required for autocompletion. An easy way to get autocompletion to work for VSCode is to use the included [Devcontainer](https://code.visualstudio.com/docs/devcontainers/containers) configuration.
-Open the cts2023-turn-cygnicator folder in VSCode and click the "Reopen in devcontainer" button popup (Or use the Command Palette to run Rebuild and Open In Devcontainer)
+Open the cts2023-turn-cygnicator/firmware folder in VSCode and click the "Reopen in devcontainer" button popup (Or use the Command Palette to run Rebuild and Open In Devcontainer). It might take some time to set it up the first time.
 
 # Workshop starts here
 
