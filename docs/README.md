@@ -16,6 +16,7 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
     - [Step 2: Flash image](#step-2-flash-image)
       - [Flashing using picotool](#flashing-using-picotool)
       - [Flashing by moving UF2 to mass-storage device](#flashing-by-moving-uf2-to-mass-storage-device)
+- [How to debug with picocom](#how-to-debug-with-picocom)
   - [Building for the Simulator](#building-for-the-simulator)
   - [Running the Simulator](#running-the-simulator)
   - [Autocompletion in VS Code](#autocompletion-in-vs-code)
@@ -275,6 +276,27 @@ ERROR: Unable to access device to reboot it; Use sudo or setup a udev rule
 The output file *.UF2 can also be flashed by moving it into Pico when it shows up as mass-storage device after putting the pico into BOOTSEL mode.
 
 ![alt text](img/drag_drop.png "moving UF2 to mass-storage")
+
+# How to debug with picocom
+
+Being able to debug is a key factor in understanding what your firmware is doing.
+With the picocom tool you can read logs sent serially from the Pico to your host computer.
+
+The Pico SDK maps the standard libc print calls to be sent serially.
+This can be enabled by running `stdio_init_all()`, which enabled standard input/output via serially
+via USB.
+
+We have provided a help script to run picocom from docker.
+```bash
+
+# Run with default port /dev/ttyACM0
+./run-picocom.sh
+
+# You cna select port in the first argument
+./run-picocom.sh /dev/ttyUSB0
+
+```
+**Note:** To exit picocom: `Ctrl + A` then `C`
 
 ## Building for the Simulator
 By default, running build.sh builds for the Pico hardware. Included in the workshop repo is a basic simulator that can be used for testing instead of flashing directly to the real hardware.
