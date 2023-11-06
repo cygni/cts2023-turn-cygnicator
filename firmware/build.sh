@@ -12,7 +12,7 @@ docker run --rm --user "$(id -u)" -v "${firmware_dir}":"${firmware_dir}" -w "$(p
 docker run --rm --user "$(id -u)" -v "${firmware_dir}":"${firmware_dir}" -w "$(pwd)/build" --name rpibuilder rpisdk:latest /usr/bin/make
 
 echo -e "\n${YELLOW}=== Simulator Output Files ===${GREEN}"
-find . -type f -executable ! -name "*.*"
+find . -type f -perm -111 ! -name "*.*"
 echo -e "${ENDCOLOR}"
 echo -e "\n${YELLOW}=== Raspberry Pico Output Files ===${GREEN}"
 find . -name "*.uf2"
