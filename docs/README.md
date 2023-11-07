@@ -2,58 +2,66 @@
 
 Hello and welcome to the CTS 2023 embedded trail. In this trail you will be introduced to basic real-time system concepts and how to utilize them in FreeRTOS, a real-time system core for embedded devices. With these concepts, you will finalize a mini version of a car's telltale: brake, hazard and turn indicators will all be implemented using light and sound that can be controlled from a circuit board.
 
+<!-- TOC -->
+
 - [Introduction](#introduction)
-  - [Raspberry Pi Pico](#raspberry-pi-pico)
-  - [The Circuit Board (PCB)](#the-circuit-board-pcb)
-    - [GPIO configuration table](#gpio-configuration-table)
-  - [Workshop goals](#workshop-goals)
+    - [Raspberry Pi Pico](#raspberry-pi-pico)
+    - [The Circuit Board PCB](#the-circuit-board-pcb)
+        - [GPIO configuration table](#gpio-configuration-table)
+    - [Workshop goals](#workshop-goals)
 - [Workshop preparation](#workshop-preparation)
-  - [Preparation](#preparation)
-  - [Prepare the development environment](#prepare-the-development-environment)
-  - [How to build a Raspberry-PI flashable image](#how-to-build-a-raspberry-pi-flashable-image)
-  - [How to flash an image to Pico](#how-to-flash-an-image-to-pico)
-    - [Step 1: Enter programming mode](#step-1-enter-programming-mode)
-    - [Step 2: Flash image](#step-2-flash-image)
-      - [Flashing using picotool](#flashing-using-picotool)
-      - [Flashing by moving UF2 to mass-storage device](#flashing-by-moving-uf2-to-mass-storage-device)
-- [How to debug with picocom](#how-to-debug-with-picocom)
-  - [Building for the Simulator](#building-for-the-simulator)
-  - [Running the Simulator](#running-the-simulator)
-  - [Autocompletion in VS Code](#autocompletion-in-vs-code)
+    - [Preparation](#preparation)
+    - [Prepare the development environment](#prepare-the-development-environment)
+    - [How to build a Raspberry-PI flashable image](#how-to-build-a-raspberry-pi-flashable-image)
+    - [How to flash an image to Pico](#how-to-flash-an-image-to-pico)
+        - [Step 1: Enter programming mode](#step-1-enter-programming-mode)
+        - [Step 2: Flash image](#step-2-flash-image)
+            - [Flashing using picotool](#flashing-using-picotool)
+            - [Flashing by moving UF2 to mass-storage device](#flashing-by-moving-uf2-to-mass-storage-device)
+- [How to debug over serial](#how-to-debug-over-serial)
+        - [Windows](#windows)
+        - [Mac](#mac)
+        - [Linux](#linux)
+    - [Building for the Simulator](#building-for-the-simulator)
+    - [Running the Simulator](#running-the-simulator)
+    - [Autocompletion in VS Code](#autocompletion-in-vs-code)
 - [Workshop starts here](#workshop-starts-here)
-  - [Step 1: Handle button commands](#step-1-handle-button-commands)
-    - [Expected result](#expected-result)
-  - [Step 2: TURN LEFT and TURN RIGHT](#step-2-turn-left-and-turn-right)
-    - [Expected results:](#expected-results)
-  - [Step 3: Hazard](#step-3-hazard)
-    - [Expected results:](#expected-results-1)
-  - [Step 4: Buzzer (TICK/TOCK sound)](#step-4-buzzer-ticktock-sound)
-    - [Expected results:](#expected-results-2)
-  - [Step 5: Periodicity](#step-5-periodicity)
-    - [Expected results:](#expected-results-3)
-  - [Step 6: Brake button](#step-6-brake-button)
-    - [Expected results:](#expected-results-4)
-  - [Step 7 (BONUS): One Task that controls each LED row](#step-7-bonus-one-task-that-controls-each-led-row)
-    - [Expected results:](#expected-results-5)
+    - [Step 1: Handle button commands](#step-1-handle-button-commands)
+        - [Expected result](#expected-result)
+    - [Step 2: TURN LEFT and TURN RIGHT](#step-2-turn-left-and-turn-right)
+        - [Expected results:](#expected-results)
+    - [Step 3: Hazard](#step-3-hazard)
+        - [Expected results:](#expected-results)
+    - [Step 4: Buzzer TICK/TOCK sound](#step-4-buzzer-ticktock-sound)
+        - [Expected results:](#expected-results)
+    - [Step 5: Periodicity](#step-5-periodicity)
+        - [Expected results:](#expected-results)
+    - [Step 6: Brake button](#step-6-brake-button)
+        - [Expected results:](#expected-results)
+    - [Step 7 BONUS: One Task that controls each LED row](#step-7-bonus-one-task-that-controls-each-led-row)
+        - [Expected results:](#expected-results)
 - [API Documentation](#api-documentation)
-  - [Pico SDK API](#pico-sdk-api)
-    - [Interrupt Handling](#interrupt-handling)
-    - [Polling](#polling)
-  - [Cygnicator API](#cygnicator-api)
-  - [FreeRTOS Task API](#freertos-task-api)
-    - [xTaskCreate()](#xtaskcreate)
-    - [vTaskStartScheduler()](#vtaskstartscheduler)
-    - [vTaskDelay()](#vtaskdelay)
-  - [Inter-task communication](#inter-task-communication)
-    - [Queue example](#queue-example)
-    - [Binary Semaphores](#binary-semaphores)
-    - [Mutexes](#mutexes)
-    - [Direct Task notification](#direct-task-notification)
-    - [Stream/Message buffers](#streammessage-buffers)
-      - [Stream buffers](#stream-buffers)
-      - [Message buffers](#message-buffers)
-  - [Syncing tasks](#syncing-tasks)
-    - [Event Groups](#event-groups)
+    - [Pico SDK API](#pico-sdk-api)
+        - [Interrupt Handling](#interrupt-handling)
+        - [Polling](#polling)
+    - [Cygnicator API](#cygnicator-api)
+    - [FreeRTOS Task API](#freertos-task-api)
+        - [xTaskCreate](#xtaskcreate)
+        - [vTaskStartScheduler](#vtaskstartscheduler)
+        - [vTaskDelay](#vtaskdelay)
+    - [Inter-task communication](#inter-task-communication)
+        - [Queue example](#queue-example)
+        - [Binary Semaphores](#binary-semaphores)
+        - [Mutexes](#mutexes)
+        - [Direct Task notification](#direct-task-notification)
+        - [Stream/Message buffers](#streammessage-buffers)
+            - [Stream buffers](#stream-buffers)
+            - [Message buffers](#message-buffers)
+    - [Syncing tasks](#syncing-tasks)
+        - [Event Groups](#event-groups)
+
+<!-- /TOC -->
+
 
 ## Raspberry Pi Pico
 
@@ -219,6 +227,8 @@ Either use:
 - **picotool** provided in the docker image 
 - **move UF2 image manually** to the mass-storage device.
 
+> **_NOTE:_**  For Windows (WSL), you need to manually add USB devices so that they are visible in WSL in order to use picotool. [Instructions](https://learn.microsoft.com/en-us/windows/wsl/connect-usb). It is easier to manually move the uf2 file.
+
 #### Flashing using picotool
 
 For convenience, we have included a flash script that shortens the command that is needed to flash.
@@ -277,7 +287,7 @@ The output file *.UF2 can also be flashed by moving it into Pico when it shows u
 
 ![alt text](img/drag_drop.png "moving UF2 to mass-storage")
 
-# How to debug with picocom
+# How to debug over serial
 
 Being able to debug is a key factor in understanding what your firmware is doing.
 With the picocom tool you can read logs sent serially from the Pico to your host computer.
@@ -286,13 +296,26 @@ The Pico SDK maps the standard libc print calls to be sent serially.
 This can be enabled by running `stdio_init_all()`, which enabled standard input/output via serially
 via USB.
 
+The baud rate the Pico uses is 115200.
+
+### Windows
+You can use many tools to check the serial output. There is a handy VSCode [Serial Monitor extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-serial-monitor) that works well.
+You can use picocom if you want, but for Windows (WSL), you need to manually add USB devices so that they are visible in WSL in order to use picotool. [Instructions](https://learn.microsoft.com/en-us/windows/wsl/connect-usb). 
+
+If you use the VSCode extension, the Pico should automatically show up when connected. An alternative to the extension is [CoolTerm](https://freeware.the-meiers.org/).
+
+### Mac
+Install picocom using [Homebrew](https://formulae.brew.sh/formula/picocom), then run `sudo picocom -b 115200 /dev/tty.usbmodem1234561`
+
+It could be other numbers at the end, check the contents of /dev folder with the Pico connected to find out what it is for your system.
+### Linux
 We have provided a help script to run picocom from docker.
 ```bash
 
 # Run with default port /dev/ttyACM0
 ./run-picocom.sh
 
-# You cna select port in the first argument
+# You can select port in the first argument
 ./run-picocom.sh /dev/ttyUSB0
 
 ```
