@@ -5,60 +5,60 @@ Hello and welcome to the CTS 2023 embedded trail. In this trail you will be intr
 <!-- TOC -->
 
 - [Introduction](#introduction)
-    - [Raspberry Pi Pico](#raspberry-pi-pico)
-    - [The Circuit Board PCB](#the-circuit-board-pcb)
-        - [GPIO configuration table](#gpio-configuration-table)
-    - [Workshop goals](#workshop-goals)
+  - [Raspberry Pi Pico](#raspberry-pi-pico)
+  - [The Circuit Board (PCB)](#the-circuit-board-pcb)
+    - [GPIO configuration table](#gpio-configuration-table)
+  - [Workshop goals](#workshop-goals)
 - [Workshop preparation](#workshop-preparation)
-    - [Preparation](#preparation)
-    - [Prepare the development environment](#prepare-the-development-environment)
-    - [How to build a Raspberry-PI flashable image](#how-to-build-a-raspberry-pi-flashable-image)
-    - [How to flash an image to Pico](#how-to-flash-an-image-to-pico)
-        - [Step 1: Enter programming mode](#step-1-enter-programming-mode)
-        - [Step 2: Flash image](#step-2-flash-image)
-            - [Flashing using picotool](#flashing-using-picotool)
-            - [Flashing by moving UF2 to mass-storage device](#flashing-by-moving-uf2-to-mass-storage-device)
-- [How to debug over serial](#how-to-debug-over-serial)
-        - [Windows](#windows)
-        - [Mac](#mac)
-        - [Linux](#linux)
-    - [Building for the Simulator](#building-for-the-simulator)
-    - [Running the Simulator](#running-the-simulator)
-    - [Autocompletion in VS Code](#autocompletion-in-vs-code)
+  - [Preparation](#preparation)
+  - [Prepare the development environment](#prepare-the-development-environment)
+  - [How to build a Raspberry-PI flashable image](#how-to-build-a-raspberry-pi-flashable-image)
+  - [How to flash an image to Pico](#how-to-flash-an-image-to-pico)
+    - [Step 1: Enter programming mode](#step-1-enter-programming-mode)
+    - [Step 2: Flash image](#step-2-flash-image)
+      - [Flashing using picotool](#flashing-using-picotool)
+      - [Flashing by moving UF2 to mass-storage device](#flashing-by-moving-uf2-to-mass-storage-device)
+  - [How to debug over serial](#how-to-debug-over-serial)
+    - [Windows](#windows)
+    - [Mac](#mac)
+    - [Linux](#linux)
+  - [Building for the Simulator](#building-for-the-simulator)
+  - [Running the Simulator](#running-the-simulator)
+  - [Autocompletion in VS Code](#autocompletion-in-vs-code)
 - [Workshop starts here](#workshop-starts-here)
-    - [Step 1: Handle button commands](#step-1-handle-button-commands)
-        - [Expected result](#expected-result)
-    - [Step 2: TURN LEFT and TURN RIGHT](#step-2-turn-left-and-turn-right)
-        - [Expected results:](#expected-results)
-    - [Step 3: Hazard](#step-3-hazard)
-        - [Expected results:](#expected-results)
-    - [Step 4: Buzzer TICK/TOCK sound](#step-4-buzzer-ticktock-sound)
-        - [Expected results:](#expected-results)
-    - [Step 5: Periodicity](#step-5-periodicity)
-        - [Expected results:](#expected-results)
-    - [Step 6: Brake button](#step-6-brake-button)
-        - [Expected results:](#expected-results)
-    - [Step 7 BONUS: One Task that controls each LED row](#step-7-bonus-one-task-that-controls-each-led-row)
-        - [Expected results:](#expected-results)
+  - [Step 1: Handle button commands](#step-1-handle-button-commands)
+    - [Expected result](#expected-result)
+  - [Step 2: TURN LEFT and TURN RIGHT](#step-2-turn-left-and-turn-right)
+    - [Expected results:](#expected-results)
+  - [Step 3: Hazard](#step-3-hazard)
+    - [Expected results:](#expected-results-1)
+  - [Step 4: Buzzer (TICK/TOCK sound)](#step-4-buzzer-ticktock-sound)
+    - [Expected results:](#expected-results-2)
+  - [Step 5: Periodicity](#step-5-periodicity)
+    - [Expected results:](#expected-results-3)
+  - [Step 6: Brake button](#step-6-brake-button)
+    - [Expected results:](#expected-results-4)
+  - [Step 7 (BONUS): One Task that controls each LED row](#step-7-bonus-one-task-that-controls-each-led-row)
+    - [Expected results:](#expected-results-5)
 - [API Documentation](#api-documentation)
-    - [Pico SDK API](#pico-sdk-api)
-        - [Interrupt Handling](#interrupt-handling)
-        - [Polling](#polling)
-    - [Cygnicator API](#cygnicator-api)
-    - [FreeRTOS Task API](#freertos-task-api)
-        - [xTaskCreate](#xtaskcreate)
-        - [vTaskStartScheduler](#vtaskstartscheduler)
-        - [vTaskDelay](#vtaskdelay)
-    - [Inter-task communication](#inter-task-communication)
-        - [Queue example](#queue-example)
-        - [Binary Semaphores](#binary-semaphores)
-        - [Mutexes](#mutexes)
-        - [Direct Task notification](#direct-task-notification)
-        - [Stream/Message buffers](#streammessage-buffers)
-            - [Stream buffers](#stream-buffers)
-            - [Message buffers](#message-buffers)
-    - [Syncing tasks](#syncing-tasks)
-        - [Event Groups](#event-groups)
+  - [Pico SDK API](#pico-sdk-api)
+    - [Interrupt Handling](#interrupt-handling)
+    - [Polling](#polling)
+  - [Cygnicator API](#cygnicator-api)
+  - [FreeRTOS Task API](#freertos-task-api)
+    - [xTaskCreate()](#xtaskcreate)
+    - [vTaskStartScheduler()](#vtaskstartscheduler)
+    - [vTaskDelay()](#vtaskdelay)
+  - [Inter-task communication](#inter-task-communication)
+    - [Queue example](#queue-example)
+    - [Binary Semaphores](#binary-semaphores)
+    - [Mutexes](#mutexes)
+    - [Direct Task notification](#direct-task-notification)
+    - [Stream/Message buffers](#streammessage-buffers)
+      - [Stream buffers](#stream-buffers)
+      - [Message buffers](#message-buffers)
+  - [Syncing tasks](#syncing-tasks)
+    - [Event Groups](#event-groups)
 
 <!-- /TOC -->
 
@@ -203,6 +203,11 @@ cd firmware
 ./firmware/build/blinky-demo/blinky-demo.uf2
 ```
 
+**_NOTE:_** If you have built for Simulator before this you need to clean the build folder
+`rm -rf build/`, or you will get build errors.
+
+
+
 ## How to flash an image to Pico
 
 ### Step 1: Enter programming mode
@@ -287,7 +292,7 @@ The output file *.UF2 can also be flashed by moving it into Pico when it shows u
 
 ![alt text](img/drag_drop.png "moving UF2 to mass-storage")
 
-# How to debug over serial
+## How to debug over serial
 
 Being able to debug is a key factor in understanding what your firmware is doing.
 With the picocom tool you can read logs sent serially from the Pico to your host computer.
@@ -321,6 +326,7 @@ We have provided a help script to run picocom from docker.
 ```
 **Note:** To exit picocom: `Ctrl + A` then `C`
 
+
 ## Building for the Simulator
 By default, running build.sh builds for the Pico hardware. Included in the workshop repo is a basic simulator that can be used for testing instead of flashing directly to the real hardware.
 To enable building for the simulator, open CMakeLists.txt in the firmware folder. At the top, it has these include's.
@@ -339,14 +345,15 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/simulator.cmake)
 
 Run build.sh, and you should see that your simulator files are built
 
-**_NOTE:_** If you have built for Pico before this you need to clean the build folder
-`rm -rf build/`
 ```
 === Simulator Output Files ===
 ./build/turn-cygnicator/turn-cygnicator
 ```
 
 If you see `warning: unknown escape sequence: '\040'`, this can safely be ignored.
+
+**_NOTE:_** If you have built for Hardware before this you need to clean the build folder
+`rm -rf build/`, or you will get build errors.
 
 ## Running the Simulator
 The simulator uses the real FreeRTOS kernel so the scheduling works in the same way as on hardware. However, to support the compilation of the Pico SDK to run on your host device, we have mocked the functionality to provide basic write/read and interrupt handling. The implementation of the simulator is not 100% bulletproof, **if you have hardware available we suggest you use that**.
