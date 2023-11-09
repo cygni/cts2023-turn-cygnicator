@@ -185,8 +185,7 @@ firmware/inc/FreeRTOSConfig.h
 The first step is to build the docker image (`firmware/docker/Dockerfile`) that contains the FreeRTOS kernel, pico SDK, picotool and other tools/libraries that are needed.
 
 Run this command in the **firmware/** folder of this repository:
-`docker build --build-arg UID="$(id -u)" -t rpisdk:latest docker/` or run
-`build_docker.sh` in the same folder.
+`docker build --build-arg UID="$(id -u)" -t rpisdk:latest docker/`
 
 It takes a couple of minutes to download all dependencies, this command should only be run once.
 
