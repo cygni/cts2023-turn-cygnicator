@@ -1,5 +1,6 @@
 // Pico libs
 #include "pico/stdio.h"
+#include "pico/time.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 
@@ -7,6 +8,8 @@
 #include <FreeRTOS.h>
 #include <semphr.h>
 #include <task.h>
+
+#include <stdio.h>
 
 //Workshop libs
 #include "cygnicator_headlights.h"
@@ -35,5 +38,10 @@ static void init_pico(void)
 
 int main()
 {
-    
+    init_pico();
+
+    while(1) {
+        printf("Hello!\n");
+        sleep_ms(100);
+    }
 }
