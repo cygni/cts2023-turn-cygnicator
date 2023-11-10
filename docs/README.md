@@ -508,14 +508,11 @@ void gpio_callback(uint gpio, uint32_t events) {
 }
 
 int main() {
-  gpio_set_irq_enabled_with_callback(
-    gpio_buzzer_map[GPIO_BUTTON_TURN_LEFT], // gpio value
-    GPIO_IRQ_EDGE_RISE,    // event mask
-    true,                  // enabled
-    &gpio_callback         // call back function
-    );
+    gpio_set_irq_enabled_with_callback(gpio_button_map[BUTTON_LEFT_INDICATOR], // gpio value
+                                       GPIO_IRQ_EDGE_RISE, // event mask
+                                       true, // enabled
+                                       &gpio_callback); // call back function
 }
-
 ```
 **_NOTE:_** The example above is only for show. It is not a good practice to have printf in an ISR function. Since an interrupt handler needs to be very fast to not mess up the rest of the system.  
 
