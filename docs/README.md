@@ -324,7 +324,7 @@ We have provided a help script to run picocom from docker.
 ```
 
 If you get an access denied error, make sure that your user is in the dialout group. To add your user to dialout, run:
-`sudo usermod -a -G dialout $USER`
+`sudo usermod -a -G dialout $USER` and log in and out for group addition to take effect.
 
 **Note:** To exit picocom: `Ctrl + A` then `C`
 
