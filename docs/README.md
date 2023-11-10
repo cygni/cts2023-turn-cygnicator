@@ -672,6 +672,12 @@ void vTaskFunction( void * pvParameters )
 
 There are multiple ways/concepts that can be used for inter-task communication such as Queues, Binary Semaphores, Mutexes, Direct Task notification and Stream/Message buffers. 
 
+[FreeRTOS API Reference](https://www.freertos.org/a00106.html)
+
+
+**Note:** Most API functions that we mention below have an ISR-safe function, that should be used if you want to interace with the API from an interrupt handler.
+xQueueSendFromISR, xQueueReceiveFromISR, xSemaphoreTakeFromISR, xSemaphoreGiveFromISR, xTimerStartFromISR, xTimerStopFromISR.
+
 Queues are the primary form and they can be used to send messages between tasks, and between interrupts and tasks. In most cases they are used as thread safe FIFO (First In First Out) buffers with new data being sent to the back of the queue, although data can also be sent to the front of the queue.
 
 ### Queue example
