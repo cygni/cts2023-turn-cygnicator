@@ -228,10 +228,10 @@ Now the Pico has entered programming mode, it should appear to your host compute
 There are two alternatives on how to flash in this guide.
 
 Either use:
-- **picotool** provided in the docker image 
+- **picotool** provided in the docker image
 - **move UF2 image manually** to the mass-storage device.
 
-> **_NOTE:_**  For Windows (WSL), you need to manually add USB devices so that they are visible in WSL in order to use picotool. [Instructions](https://learn.microsoft.com/en-us/windows/wsl/connect-usb). It is easier to manually move the uf2 file.
+> **_NOTE:_**  For Windows (WSL) and Mac, you need to manually add USB devices so that they are visible in order to use picotool. [Instructions for Windows](https://learn.microsoft.com/en-us/windows/wsl/connect-usb). It is easier to manually move the uf2 file.
 
 #### Flashing using picotool
 
@@ -311,7 +311,6 @@ If you use the VSCode extension, the Pico should automatically show up when conn
 ### Mac
 Install picocom using [Homebrew](https://formulae.brew.sh/formula/picocom), then run `sudo picocom -b 115200 /dev/tty.usbmodem1234561`
 
-It could be other numbers at the end, check the contents of /dev folder with the Pico connected to find out what it is for your system.
 ### Linux
 We have provided a help script to run picocom from docker.
 ```bash
@@ -325,6 +324,10 @@ We have provided a help script to run picocom from docker.
 ```
 **Note:** To exit picocom: `Ctrl + A` then `C`
 
+**Note:** For both Mac and Linux, the device name could be different, i.e. it could be another suffix after /dev/tty. Check the contents of /dev folder with the Pico connected to find out what it is for your system.
+`ls /dev/tty*`
+
+**Note:**  Make sure that your program is flashed, it will not come up as a serial device in BOOTSEL-mode!
 
 ## Building for the Simulator
 By default, running build.sh builds for the Pico hardware. Included in the workshop repo is a basic simulator that can be used for testing instead of flashing directly to the real hardware.
