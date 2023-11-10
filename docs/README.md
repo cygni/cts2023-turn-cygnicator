@@ -322,6 +322,10 @@ We have provided a help script to run picocom from docker.
 ./run-picocom.sh /dev/ttyUSB0
 
 ```
+
+If you get an access denied error, make sure that your user is in the dialout group. To add your user to dialout, run:
+`sudo usermod -a -G dialout $USER`
+
 **Note:** To exit picocom: `Ctrl + A` then `C`
 
 **Note:** For both Mac and Linux, the device name could be different, i.e. it could be another suffix after /dev/tty. Check the contents of /dev folder with the Pico connected to find out what it is for your system.
