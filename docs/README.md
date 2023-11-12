@@ -695,7 +695,7 @@ static void vTaskCode_rx(void *parameters) {
                     message_queue,
                     &rx_value,
                     portMAX_DELAY
-                            );
+                  );
 
     // if message received is equal to 1 then toggle the LEDs
     if (rx_value == 1)  {
@@ -716,7 +716,7 @@ static void vTaskCode_tx(void *parameters) {
 
     xQueueSend(
       message_queue,
-      tx_value,
+      &tx_value,
       0
     );
 
